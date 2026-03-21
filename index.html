@@ -2,64 +2,64 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>MOPSOGRAM | Fixed Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MOPSOGRAM | Universal</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { --bg: #050505; --card: #0d0d0d; --accent: #ff6600; --text: #fff; --border: #1a1a1a; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
 
-        /* АНИМАЦИИ */
         @keyframes spring { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        * { box-sizing: border-box; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Segoe UI', sans-serif; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Segoe UI', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; width: 100vw; }
 
-        .page { display: none; height: 100vh; width: 100vw; animation: fadeIn 0.4s ease; }
+        .page { display: none; height: 100vh; width: 100vw; animation: fadeIn 0.4s ease; flex-direction: row; }
         .active { display: flex; }
 
-        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        /* SIDEBAR (Desktop) */
+        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
         .nav-item { padding: 15px 25px; cursor: pointer; color: #555; font-weight: bold; font-size: 11px; text-transform: uppercase; border-left: 3px solid transparent; }
         .nav-item.active-tab { color: var(--accent); background: #150a00; border-left-color: var(--accent); }
 
-        .main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        /* MAIN CONTENT */
+        .main-view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; width: 100%; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg { max-width: 75%; padding: 12px 18px; border-radius: 18px; border: 1px solid #161616; background: #111; animation: spring 0.3s ease; }
+        .msg { max-width: 85%; padding: 12px 16px; border-radius: 18px; border: 1px solid #161616; background: #111; animation: spring 0.3s ease; font-size: 14px; line-height: 1.4; }
         .msg-out { align-self: flex-end; border-color: rgba(255,102,0,0.3); }
-        .msg b { cursor: pointer; color: var(--accent); text-decoration: underline; text-decoration-color: transparent; }
-        .msg b:hover { text-decoration-color: var(--accent); }
+        .msg b { cursor: pointer; color: var(--accent); }
 
-        /* МОДАЛКА ПРОФИЛЯ */
-        #profile-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); 
-            display: none; justify-content: center; align-items: center; z-index: 999; 
-            animation: fadeIn 0.2s ease;
-        }
-        .profile-card { 
-            background: var(--card); border: 1px solid var(--accent); width: 340px; 
-            padding: 35px; border-radius: 35px; text-align: center; 
-            animation: spring 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            box-shadow: 0 0 30px rgba(255,102,0,0.2);
-        }
-        .profile-card img { width: 110px; height: 110px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; margin-bottom: 15px; }
-        
-        .aka-list { 
-            font-size: 12px; color: #ff6600; margin-top: 15px; 
-            max-height: 120px; overflow-y: auto; background: #000; 
-            padding: 12px; border-radius: 15px; border: 1px solid #1a1a1a;
-            line-height: 1.5; word-wrap: break-word;
-        }
-
+        /* UI ELEMENTS */
         .btn { padding: 12px 20px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; font-size: 10px; text-transform: uppercase; }
-        .btn:hover { transform: scale(1.05); }
-        input { background: #080808; border: 1px solid var(--border); color: #fff; padding: 14px; border-radius: 10px; width: 100%; margin-bottom: 10px; outline: none; }
-        input:focus { border-color: var(--accent); }
+        input { background: #080808; border: 1px solid var(--border); color: #fff; padding: 14px; border-radius: 10px; width: 100%; outline: none; font-size: 16px; }
         
-        #display-aka { font-size: 10px; color: var(--accent); opacity: 0.7; max-height: 60px; overflow-y: auto; margin-top: 5px; font-style: italic; }
-        .card { background: #0a0a0a; border: 1px solid var(--border); padding: 20px; border-radius: 20px; margin-bottom: 15px; }
+        /* PROFILE MODAL */
+        #profile-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 999; }
+        .profile-card { background: var(--card); border: 1px solid var(--accent); width: 90%; max-width: 340px; padding: 30px; border-radius: 35px; text-align: center; animation: spring 0.4s ease; }
+        .profile-card img { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .aka-list { font-size: 12px; color: #ff6600; margin-top: 15px; max-height: 100px; overflow-y: auto; background: #000; padding: 10px; border-radius: 15px; }
+
+        /* --- MOBILE ADAPTATION --- */
+        @media (max-width: 768px) {
+            .page { flex-direction: column; }
+            .sidebar { 
+                width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); 
+                flex-direction: row; overflow-x: auto; padding: 5px 0;
+            }
+            .sidebar-header { display: none !important; } /* Прячем инфо в мобильном меню, чтобы не занимало место */
+            .nav-item { padding: 10px 15px; font-size: 9px; border-left: none; border-bottom: 2px solid transparent; text-align: center; flex: 1; min-width: 80px; }
+            .nav-item.active-tab { border-left-color: transparent; border-bottom-color: var(--accent); }
+            
+            .main-view { height: calc(100vh - 50px); }
+            .msg { max-width: 90%; font-size: 13px; }
+            .profile-card { padding: 20px; }
+        }
+
+        #display-aka { font-size: 10px; color: var(--accent); opacity: 0.7; max-height: 40px; overflow-y: auto; margin-top: 5px; font-style: italic; }
+        .card { background: #0a0a0a; border: 1px solid var(--border); padding: 15px; border-radius: 20px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -67,69 +67,68 @@
     <div id="profile-overlay" onclick="closeProfile()">
         <div class="profile-card" onclick="event.stopPropagation()">
             <img id="p-img" src="">
-            <h2 id="p-name" style="margin:0; color:var(--accent); letter-spacing:1px;"></h2>
-            <div style="font-size: 10px; color: #555; margin-top: 10px; text-transform: uppercase;">Collection:</div>
+            <h2 id="p-name" style="margin:10px 0 0 0; color:var(--accent);"></h2>
             <div id="p-aka" class="aka-list"></div>
-            <button class="btn" style="margin-top: 25px; width: 100%;" onclick="closeProfile()">ЗАКРЫТЬ</button>
+            <button class="btn" style="margin-top: 20px; width: 100%;" onclick="closeProfile()">ЗАКРЫТЬ</button>
         </div>
     </div>
 
-    <div id="auth-page" class="page active" style="flex-direction:column; align-items:center; justify-content:center;">
-        <div style="width:340px; text-align:center; background:var(--card); padding:50px; border-radius:35px; border:1px solid var(--border)">
-            <h1 style="color:var(--accent); letter-spacing:5px; margin-bottom:30px;">MOPSOGRAM</h1>
+    <div id="auth-page" class="page active" style="align-items:center; justify-content:center;">
+        <div style="width:90%; max-width:340px; text-align:center; background:var(--card); padding:40px; border-radius:35px; border:1px solid var(--border)">
+            <h1 style="color:var(--accent); letter-spacing:5px; margin-bottom:20px; font-size: 24px;">MOPSOGRAM</h1>
             <input type="text" id="u-login" placeholder="ЛОГИН">
             <input type="password" id="u-pass" placeholder="ПАРОЛЬ">
-            <button class="btn" style="width:100%" onclick="auth()">ВОЙТИ</button>
+            <button class="btn" style="width:100%; margin-top:10px;" onclick="auth()">ВОЙТИ</button>
         </div>
     </div>
 
     <div id="main-page" class="page">
         <div class="sidebar">
-            <div style="padding:40px 20px; text-align:center; border-bottom:1px solid var(--border)">
-                <img id="my-av" src="" style="width:85px; height:85px; border-radius:50%; border:2px solid var(--accent); object-fit:cover; margin-bottom:12px;">
-                <h3 id="display-u" style="margin:0; text-transform:uppercase;">USER</h3>
+            <div class="sidebar-header" style="padding:30px 20px; text-align:center; border-bottom:1px solid var(--border); width: 100%;">
+                <img id="my-av" src="" style="width:70px; height:70px; border-radius:50%; border:2px solid var(--accent); object-fit:cover; margin-bottom:10px;">
+                <h3 id="display-u" style="margin:0; font-size: 16px;">USER</h3>
                 <div id="display-aka"></div>
-                <div id="display-s" style="color:var(--accent); font-weight:bold; margin-top:15px; font-size: 22px;">⭐ 0</div>
+                <div id="display-s" style="color:var(--accent); font-weight:bold; margin-top:10px;">⭐ 0</div>
             </div>
             <div class="nav-item active-tab" onclick="tab('chat', this)">💬 ЧАТ</div>
             <div class="nav-item" onclick="tab('frag', this)">💎 FRAGMENT</div>
-            <div class="nav-item" onclick="tab('set', this)">⚙️ НАСТРОЙКИ</div>
-            <div id="admin-nav" class="nav-item" style="display:none; color:var(--accent);" onclick="tab('admin', this)">💀 GOD PANEL</div>
+            <div class="nav-item" onclick="tab('set', this)">⚙️ ОПЦИИ</div>
+            <div id="admin-nav" class="nav-item" style="display:none; color:var(--accent);" onclick="tab('admin', this)">💀 GOD</div>
         </div>
 
         <div id="tab-chat" class="main-view">
-            <div style="padding:15px 25px; background:rgba(8,8,8,0.9); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                <span style="letter-spacing:1px; font-weight:bold; color:var(--accent);"># GLOBAL_HUB</span>
-                <button id="clear-btn" class="btn" style="background:red; color:white; display:none; padding:8px 15px;" onclick="clearChat()">УДАЛИТЬ ЧАТ</button>
+            <div style="padding:10px 15px; background:rgba(8,8,8,0.9); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-weight:bold; color:var(--accent); font-size: 12px;"># GLOBAL_HUB</span>
+                <button id="clear-btn" class="btn" style="background:red; color:white; display:none; padding:5px 10px;" onclick="clearChat()">ЧИСТКА</button>
             </div>
             <div id="chat-box"></div>
-            <div style="padding:20px; background:var(--card); display:flex; gap:12px; border-top:1px solid var(--border)">
-                <input type="text" id="m-input" placeholder="Написать сообщение..." onkeypress="if(event.key==='Enter') send()" style="margin:0">
-                <button class="btn" onclick="send()">SEND</button>
+            <div style="padding:10px; background:var(--card); display:flex; gap:8px; border-top:1px solid var(--border)">
+                <input type="text" id="m-input" placeholder="Сообщение..." onkeypress="if(event.key==='Enter') send()" style="margin:0; font-size: 14px; padding: 10px;">
+                <button class="btn" onclick="send()" style="padding: 0 15px;">SEND</button>
             </div>
         </div>
 
-        <div id="tab-frag" class="main-view" style="display:none; padding:40px;">
+        <div id="tab-frag" class="main-view" style="display:none; padding:20px; overflow-y: auto;">
             <div class="card">
-                <h3 style="color:var(--accent)">FREE NFT MINT</h3>
+                <h3 style="color:var(--accent); margin-top:0;">FREE MINT</h3>
                 <input type="text" id="new-nick-name" placeholder="@nickname">
-                <button class="btn" onclick="mintNick()">ЗАБРАТЬ НИК</button>
+                <button class="btn" style="width:100%" onclick="mintNick()">ЗАБРАТЬ НИК</button>
             </div>
             <div id="nick-list"></div>
         </div>
 
-        <div id="tab-set" class="main-view" style="display:none; padding:40px;">
+        <div id="tab-set" class="main-view" style="display:none; padding:20px; overflow-y: auto;">
             <div class="card">
-                <h3>НАСТРОЙКИ ПРОФИЛЯ</h3>
+                <h3>ПРОФИЛЬ</h3>
                 <input type="text" id="set-av" placeholder="URL Аватарки">
                 <input type="password" id="set-pass" placeholder="Новый пароль">
-                <button class="btn" onclick="saveSettings()">СОХРАНИТЬ</button>
+                <button class="btn" style="width:100%" onclick="saveSettings()">СОХРАНИТЬ</button>
             </div>
         </div>
 
-        <div id="tab-admin" class="main-view" style="display:none; padding:40px;">
-            <h2 style="color:var(--accent)">БАЗА ДАННЫХ</h2>
-            <div class="card" id="admin-users" style="font-family:monospace;"></div>
+        <div id="tab-admin" class="main-view" style="display:none; padding:20px; overflow-y: auto;">
+            <h2 style="color:var(--accent)">DB ACCESS</h2>
+            <div class="card" id="admin-users" style="font-family:monospace; font-size: 12px;"></div>
         </div>
     </div>
 
@@ -148,7 +147,7 @@
                 const { data: n } = await client.from('users').insert([{ username: u, password: p, stars: 500 }]).select().single();
                 user = n;
             } else {
-                if(data.password === p) user = data; else return alert("ДОСТУП ЗАПРЕЩЕН!");
+                if(data.password === p) user = data; else return alert("ОШИБКА ПАРОЛЯ!");
             }
             start();
         }
@@ -190,13 +189,11 @@
             try {
                 const { data: uData } = await client.from('users').select('*').eq('username', targetUser).single();
                 const { data: nicks } = await client.from('fragment_market').select('username_text').eq('owner', targetUser);
-                
                 document.getElementById('p-img').src = uData.avatar_url || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
                 document.getElementById('p-name').innerText = targetUser;
                 document.getElementById('p-aka').innerText = nicks?.length ? nicks.map(n => n.username_text).join(', ') : 'НЕТ КОЛЛЕКЦИИ';
-                
                 document.getElementById('profile-overlay').style.display = 'flex';
-            } catch(e) { console.error("Profile Error", e); }
+            } catch(e) { console.error(e); }
         }
 
         function closeProfile() { document.getElementById('profile-overlay').style.display = 'none'; }
@@ -207,17 +204,13 @@
             inp.value = '';
         }
 
-        async function clearChat() { 
-            if(!confirm("УДАЛИТЬ ВСЕ СООБЩЕНИЯ?")) return;
-            await client.from('messages').delete().neq('username', 'system'); 
-            loadMsgs(); 
-        }
+        async function clearChat() { if(confirm("УДАЛИТЬ ЧАТ?")) { await client.from('messages').delete().neq('username', 'sys'); loadMsgs(); } }
 
         async function mintNick() {
             const name = document.getElementById('new-nick-name').value.trim();
             if(!name) return;
             await client.from('fragment_market').insert([{ username_text: name.startsWith('@') ? name : '@'+name, owner: user.username, price: 0 }]);
-            alert("НИК ЗАБРАН БЕСПЛАТНО!"); loadNicks(); updateUI();
+            alert("ГОТОВО!"); loadNicks(); updateUI();
         }
 
         async function loadNicks() {
@@ -226,25 +219,20 @@
             data?.forEach(n => {
                 const isMine = n.owner === user.username;
                 list.innerHTML += `<div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <b>${n.username_text}</b>
-                    ${isMine ? `<button class="btn" style="background:red; color:white;" onclick="cancelSale('${n.username_text}')">ЗАБРАТЬ</button>` : ''}
+                    <b style="font-size:13px;">${n.username_text}</b>
+                    ${isMine ? `<button class="btn" style="background:red; color:white; padding:5px 10px;" onclick="cancelSale('${n.username_text}')">ЗАБРАТЬ</button>` : ''}
                 </div>`;
             });
         }
 
-        async function cancelSale(nick) { 
-            await client.from('fragment_market').delete().eq('username_text', nick); 
-            loadNicks(); updateUI(); 
-        }
-
+        async function cancelSale(nick) { await client.from('fragment_market').delete().eq('username_text', nick); loadNicks(); updateUI(); }
         async function saveSettings() {
             await client.from('users').update({ avatar_url: document.getElementById('set-av').value || user.avatar_url, password: document.getElementById('set-pass').value || user.password }).eq('username', user.username);
-            alert("ИЗМЕНЕНО!"); location.reload();
+            location.reload();
         }
-
         async function loadAdminData() {
             const { data } = await client.from('users').select('username, password');
-            document.getElementById('admin-users').innerHTML = data.map(u => `<div>👤 ${u.username} — 🔑 ${u.password}</div>`).join('');
+            document.getElementById('admin-users').innerHTML = data.map(u => `<div>👤 ${u.username} | 🔑 ${u.password}</div>`).join('');
         }
 
         function tab(t, el) {
