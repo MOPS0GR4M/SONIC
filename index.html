@@ -3,84 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM | SUPREME 8.0</title>
+    <title>MOPSOGRAM | SUPREME 10.0</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
             --bg: #000; --card: #0a0a0a; --accent: #ff6600; 
             --text: #fff; --text-dim: #777; --border: #1a1a1a; 
-            --god: #ff0055; --bot: #00e5ff;
+            --god: #ff0055;
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; transition: 0.2s; }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; }
+        /* АНИМАЦИИ */
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes zoomIn { from { opacity: 0; transform: scale(0.8) translate(-50%, -50%); transform-origin: top left; } to { opacity: 1; transform: scale(1) translate(-50%, -50%); } }
+        @keyframes blurIn { from { backdrop-filter: blur(0px); background: rgba(0,0,0,0); } to { backdrop-filter: blur(10px); background: rgba(0,0,0,0.8); } }
+
+        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; animation: slideUp 0.5s ease; }
         .page.active { display: flex; }
 
         /* САЙДБАР */
-        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .profile-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
-        .user-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 12px; cursor: pointer; }
+        .user-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 12px; cursor: pointer; transition: 0.3s; }
+        .user-avatar:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,102,0,0.4); }
         .balance { font-size: 26px; font-weight: 900; color: var(--accent); }
 
         .nav-btn { 
             padding: 18px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 11px; 
-            text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid transparent;
+            text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid transparent; transition: 0.2s;
         }
         .nav-btn:hover { background: rgba(255,102,0,0.05); color: #fff; }
         .nav-btn.active { color: var(--accent); background: rgba(255,102,0,0.08); border-left-color: var(--accent); }
         .god-btn { color: var(--god) !important; margin-top: auto; border-top: 1px solid var(--border); }
 
-        /* ОСНОВНОЙ КОНТЕНТ */
+        /* ЧАТ */
         .view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; }
         
-        .msg { padding: 15px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 85%; align-self: flex-start; }
-        .msg.mine { align-self: flex-end; border-color: #442200; background: #150d00; }
-        .msg b { color: var(--accent); cursor: pointer; font-size: 13px; }
-        .msg b:hover { text-decoration: underline; }
-        .msg-text { margin-top: 5px; line-height: 1.4; }
+        .msg { padding: 15px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 80%; animation: slideUp 0.3s ease forwards; }
+        .msg.mine { align-self: flex-end; border-color: #351a00; background: #120900; }
+        .msg b { color: var(--accent); cursor: pointer; font-size: 14px; text-decoration: underline; }
+        .msg-text { margin-top: 5px; line-height: 1.5; color: #eee; }
+
+        /* МОДАЛКА (ВЫЛЕТАЕТ) */
+        #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:1000; animation: blurIn 0.3s forwards; }
+        .mini-profile { 
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--card); border: 1px solid var(--border); border-radius: 40px; 
+            width: 320px; padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
 
         .input-bar { padding: 20px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; }
         .input-bar input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; outline: none; }
-
         .btn { padding: 15px 25px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 11px; }
 
-        /* МОДАЛКА ПРОФИЛЯ */
-        #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; align-items:center; justify-content:center; }
-        .mini-profile { background:var(--card); border:1px solid var(--border); border-radius:40px; width:320px; padding:40px; text-align:center; position:relative; }
-        .close-btn { position:absolute; top:20px; right:20px; cursor:pointer; font-size:20px; color:var(--text-dim); }
-
-        /* ТАБЛИЦЫ И СПИСКИ */
         .tab-view { display: none; padding: 35px; flex-direction: column; gap: 20px; overflow-y: auto; height: 100%; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 25px; border-radius: 25px; }
-        .nft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 15px; }
-        .nft-card { background: #0d0d0d; border: 1px solid var(--border); padding: 20px; border-radius: 20px; text-align: center; cursor: pointer; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 30px; }
+        .nft-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .nft-item { background: #0d0d0d; padding: 20px; border-radius: 20px; border: 1px solid var(--border); text-align: center; cursor: pointer; }
 
         #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 15px 35px; border-radius: 50px; background: var(--accent); color: #000; font-weight: 900; z-index: 2000; transition: 0.5s; }
     </style>
 </head>
 <body>
 
-    <div id="toast">СИСТЕМА ЗАГРУЖЕНА</div>
+    <div id="toast">СИСТЕМА АКТИВИРОВАНА</div>
 
     <div id="modal-overlay" onclick="closeProfile()">
         <div class="mini-profile" onclick="event.stopPropagation()">
-            <span class="close-btn" onclick="closeProfile()">×</span>
-            <img id="m-av" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--accent); margin-bottom:15px;">
-            <h2 id="m-name" style="margin:0; letter-spacing:1px;">USER</h2>
-            <p id="m-stars" style="color:var(--accent); font-weight:900; font-size:20px; margin:10px 0;">⭐ 0</p>
-            <div style="font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-top:20px;">СТАТУС: ONLINE</div>
+            <img id="m-av" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent); margin-bottom:15px;">
+            <h2 id="m-name" style="margin:0;">USER</h2>
+            <p id="m-stars" style="color:var(--accent); font-weight:900; font-size:24px; margin:10px 0;">⭐ 0</p>
+            <button class="btn" style="width:100%; margin-top:20px;" onclick="closeProfile()">ЗАКРЫТЬ</button>
         </div>
     </div>
 
-    <div id="p-auth" class="page active" style="align-items:center; justify-content:center; background:radial-gradient(circle, #1a0d00, #000);">
-        <div style="background:var(--card); padding:50px; border-radius:40px; width:360px; text-align:center; border:1px solid var(--border);">
-            <h1 style="color:var(--accent); letter-spacing:8px;">MOPSOGRAM</h1>
-            <input type="text" id="log-u" placeholder="ЛОГИН" style="width:100%; padding:15px; margin-bottom:10px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;">
-            <input type="password" id="pass-u" placeholder="ПАРОЛЬ" style="width:100%; padding:15px; margin-bottom:20px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;">
-            <button class="btn" style="width:100%;" onclick="auth()">ВОЙТИ В СИСТЕМУ</button>
+    <div id="p-auth" class="page active" style="align-items:center; justify-content:center;">
+        <div style="background:var(--card); padding:50px; border-radius:40px; width:380px; border:1px solid var(--border); text-align:center;">
+            <h1 style="color:var(--accent); letter-spacing:8px; margin-bottom:30px;">MOPSOGRAM</h1>
+            <input type="text" id="log-u" class="input-bar" style="width:100%; margin-bottom:10px; border-radius:12px;" placeholder="ЛОГИН">
+            <input type="password" id="pass-u" class="input-bar" style="width:100%; margin-bottom:20px; border-radius:12px;" placeholder="ПАРОЛЬ">
+            <button class="btn" style="width:100%; padding:18px;" onclick="auth()">ВХОД</button>
         </div>
     </div>
 
@@ -91,52 +97,52 @@
                 <div id="my-name" style="font-weight: 900; font-size: 20px;">USER</div>
                 <div id="my-stars" class="balance">⭐ 0</div>
             </div>
-            <div class="nav-btn active" onclick="tab('chat', this)">💬 ОБЩИЙ ЧАТ</div>
-            <div class="nav-btn" onclick="tab('bank', this)">💰 МОЙ БАНК</div>
-            <div class="nav-btn" onclick="tab('frag', this)">💎 FRAGMENT NFT</div>
+            <div class="nav-btn active" onclick="tab('chat', this)">💬 ЧАТ</div>
+            <div class="nav-btn" onclick="tab('bank', this)">💰 БАНК</div>
+            <div class="nav-btn" onclick="tab('frag', this)">💎 FRAGMENT</div>
             <div id="god-menu" class="nav-btn god-btn" style="display:none;" onclick="tab('god', this)">⚡ GOD PANEL</div>
-            <div style="margin-top:20px; padding:20px;"><button class="btn" style="width:100%; background:#111; color:#fff;" onclick="location.reload()">ВЫЙТИ</button></div>
+            <div style="margin-top:auto; padding:20px;"><button class="btn" style="width:100%; background:#111; color:#fff;" onclick="location.reload()">ВЫЙТИ</button></div>
         </div>
 
         <div class="view">
             <div id="t-chat" class="tab-view" style="display:flex; padding:0;">
                 <div id="chat-box"></div>
                 <div class="input-bar">
-                    <input type="text" id="m-in" placeholder="Напишите что-нибудь..." onkeypress="if(event.key==='Enter') send()">
+                    <input type="text" id="m-in" placeholder="Написать..." onkeypress="if(event.key==='Enter') send()">
                     <button class="btn" onclick="send()">ОТПРАВИТЬ</button>
                 </div>
             </div>
 
             <div id="t-frag" class="tab-view">
                 <div class="card">
-                    <h2 style="color:var(--accent); margin-top:0;">МИНТ НОВОГО ИМЕНИ</h2>
-                    <div style="display:flex; gap:10px;"><input type="text" id="n-name" placeholder="@username" style="flex:1; background:#000; border:1px solid var(--border); color:#fff; padding:15px; border-radius:12px; outline:none;"><button class="btn" onclick="mint()">МИНТ</button></div>
+                    <h2 style="color:var(--accent); margin:0 0 20px 0;">МИНТ NFT ИМЕНИ</h2>
+                    <div style="display:flex; gap:10px;"><input type="text" id="n-name" class="input-bar" style="flex:1; margin:0; border-radius:12px;" placeholder="@username"><button class="btn" onclick="mint()">МИНТ</button></div>
                 </div>
-                <h3 style="margin-left:10px; color:var(--text-dim); letter-spacing:2px;">ЗАНЯТЫЕ НИКИ (NFT)</h3>
+                <h3>ВСЕ ЗАНЯТЫЕ НИКИ:</h3>
                 <div id="nft-list" class="nft-grid"></div>
             </div>
 
             <div id="t-bank" class="tab-view">
                 <div class="card">
-                    <h2 style="color:var(--accent); margin-top:0;">ОТПРАВИТЬ ⭐</h2>
-                    <input type="text" id="g-to" placeholder="Логин получателя" style="width:100%; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px; margin-bottom:10px; outline:none;">
-                    <input type="number" id="g-amt" placeholder="Сумма" style="width:100%; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px; margin-bottom:15px; outline:none;">
-                    <button class="btn" style="width:100%" onclick="transfer()">ВЫПОЛНИТЬ ТРАНЗАКЦИЮ</button>
+                    <h2 style="color:var(--accent); margin:0 0 20px 0;">ОТПРАВКА ЗВЕЗД</h2>
+                    <input type="text" id="g-to" class="input-bar" style="width:100%; margin-bottom:10px; border-radius:12px;" placeholder="Получатель">
+                    <input type="number" id="g-amt" class="input-bar" style="width:100%; margin-bottom:15px; border-radius:12px;" placeholder="Сумма">
+                    <button class="btn" style="width:100%" onclick="transfer()">ПЕРЕВЕСТИ</button>
                 </div>
-                <div class="card"><h2>АКТИВИРОВАТЬ ЧЕК</h2><input type="text" id="c-code" placeholder="GIFT-XXXXXX" style="width:100%; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px; margin-bottom:10px; outline:none;"><button class="btn" style="width:100%; background:#fff; color:#000" onclick="claim()">CLAIM</button></div>
+                <div class="card"><h2>ЧЕКИ</h2><input type="text" id="c-code" class="input-bar" style="width:100%; margin-bottom:10px; border-radius:12px;" placeholder="GIFT-XXXXXX"><button class="btn" style="width:100%; background:#fff; color:#000" onclick="claim()">ЗАБРАТЬ</button></div>
             </div>
 
             <div id="t-god" class="tab-view">
                 <div class="card" style="border-color:var(--god)">
-                    <h2 style="color:var(--god); margin-top:0;">УПРАВЛЕНИЕ</h2>
-                    <button class="btn" style="background:var(--god); color:#fff; width:100%; margin-bottom:10px;" onclick="resetNFTs()">СБРОСИТЬ ВСЕ NFT ИМЕНА</button>
-                    <button class="btn" style="background:#444; color:#fff; width:100%;" onclick="clearAllChat()">УДАЛИТЬ ВЕСЬ ЧАТ</button>
+                    <h2 style="color:var(--god); margin-top:0;">ADMIN: УПРАВЛЕНИЕ</h2>
+                    <button class="btn" style="background:var(--god); color:#fff; width:100%; margin-bottom:10px;" onclick="resetNFTs()">ОБНУЛИТЬ ВСЕ ИМЕНА</button>
+                    <button class="btn" style="background:#333; color:#fff; width:100%;" onclick="clearAllChat()">ОЧИСТИТЬ ЧАТ</button>
                 </div>
                 <div class="card">
-                    <h2 style="color:var(--god); margin-top:0;">ГЕНЕРАЦИЯ ЧЕКА</h2>
-                    <input type="number" id="adm-amt" placeholder="Сумма" style="width:100%; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px; margin-bottom:10px;">
-                    <input type="number" id="adm-uses" placeholder="Кол-во активаций" style="width:100%; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px; margin-bottom:10px;">
-                    <button class="btn" style="background:var(--god); color:#fff; width:100%" onclick="createGift()">ВЫПУСТИТЬ В ЧАТ</button>
+                    <h2 style="color:var(--god); margin-top:0;">ADMIN: ЧЕК</h2>
+                    <input type="number" id="adm-amt" class="input-bar" style="width:100%; margin-bottom:10px;" placeholder="Сумма">
+                    <input type="number" id="adm-uses" class="input-bar" style="width:100%; margin-bottom:10px;" placeholder="Юзы">
+                    <button class="btn" style="background:var(--god); color:#fff; width:100%" onclick="createGift()">ВЫПУСТИТЬ ЧЕК</button>
                 </div>
             </div>
         </div>
@@ -151,7 +157,7 @@
         async function auth() {
             const u = document.getElementById('log-u').value.trim();
             const p = document.getElementById('pass-u').value.trim();
-            if(!u || !p) return notify("Заполни поля!", "err");
+            if(!u || !p) return notify("Заполни всё!", "err");
             try {
                 let { data: ex } = await sb.from('users').select('*').eq('username', u).maybeSingle();
                 if(!ex) {
@@ -162,7 +168,7 @@
                     else return notify("Неверный пароль!", "err");
                 }
                 if(user) start();
-            } catch(e) { alert("Ошибка инициализации"); }
+            } catch(e) { alert("Ошибка подключения к БД"); }
         }
 
         function start() {
@@ -177,16 +183,16 @@
         function update() {
             document.getElementById('my-name').innerText = user.username;
             document.getElementById('my-stars').innerText = `⭐ ${(user.stars || 0).toLocaleString()}`;
-            document.getElementById('my-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.username}`;
+            document.getElementById('my-av').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${user.username}`;
         }
 
         async function openProfile(name) {
             const { data } = await sb.from('users').select('*').eq('username', name).maybeSingle();
             if(data) {
-                document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.username}`;
+                document.getElementById('m-av').src = `https://api.dicebear.com/7.x/identicon/svg?seed=${data.username}`;
                 document.getElementById('m-name').innerText = data.username;
                 document.getElementById('m-stars').innerText = `⭐ ${(data.stars || 0).toLocaleString()}`;
-                document.getElementById('modal-overlay').style.display = 'flex';
+                document.getElementById('modal-overlay').style.display = 'block';
             }
         }
 
@@ -213,36 +219,26 @@
 
         async function mint() {
             const n = document.getElementById('n-name').value.trim();
-            if(!n.startsWith('@')) return notify("Нужно @", "err");
+            if(!n.startsWith('@')) return notify("Нужен @", "err");
             const { error } = await sb.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
-            if(error) return notify("Уже занято!", "err");
-            notify("NFT Успешно создан!"); loadNFTs();
+            if(error) return notify("Занято!", "err");
+            notify("NFT Минт!"); loadNFTs();
         }
 
         async function loadNFTs() {
             const { data } = await sb.from('fragment_market').select('*').order('created_at', { ascending: false });
             const l = document.getElementById('nft-list'); l.innerHTML = '';
             data?.forEach(x => {
-                l.innerHTML += `
-                    <div class="nft-card" onclick="openProfile('${x.owner}')">
-                        <b>${x.username_text}</b>
-                        <div style="font-size:10px; color:var(--text-dim); margin-top:5px;">Владелец: ${x.owner}</div>
-                    </div>`;
+                l.innerHTML += `<div class="nft-item" onclick="openProfile('${x.owner}')"><b>${x.username_text}</b><br><small>Владелец: ${x.owner}</small></div>`;
             });
         }
 
         async function resetNFTs() {
-            if(confirm("СБРОСИТЬ ВСЕ НИКИ?")) {
-                await sb.from('fragment_market').delete().neq('id', 0);
-                notify("База имен очищена"); loadNFTs();
-            }
+            if(confirm("СБРОСИТЬ ВСЕ НИКИ?")) { await sb.from('fragment_market').delete().neq('id', 0); notify("Очищено!"); loadNFTs(); }
         }
 
         async function clearAllChat() {
-            if(confirm("ОЧИСТИТЬ ЧАТ?")) {
-                await sb.from('messages').delete().neq('id', 0);
-                notify("Чат пуст");
-            }
+            if(confirm("УДАЛИТЬ ЧАТ?")) { await sb.from('messages').delete().neq('id', 0); notify("Чат пуст"); }
         }
 
         async function createGift() {
@@ -250,14 +246,14 @@
             const u = parseInt(document.getElementById('adm-uses').value);
             const c = "GIFT-" + Math.random().toString(36).substring(2,8).toUpperCase();
             await sb.from('checks').insert([{ code: c, amount: a, uses_left: u }]);
-            await sb.from('messages').insert([{ username: '🤖 SYSTEM', text: `🎁 НОВЫЙ ЧЕК: <b>${c}</b> на ⭐${a} (${u} акт.)` }]);
+            await sb.from('messages').insert([{ username: '🤖 SYSTEM', text: `🎁 NEW GIFT: <b>${c}</b> на ⭐${a}` }]);
             notify("Чек создан");
         }
 
         async function transfer() {
             const to = document.getElementById('g-to').value.trim();
             const amt = parseInt(document.getElementById('g-amt').value);
-            if(user.stars < amt) return notify("Мало звезд!", "err");
+            if(user.stars < amt) return notify("Недостаточно!", "err");
             const { data: r } = await sb.from('users').select('*').eq('username', to).maybeSingle();
             if(!r) return notify("Нет юзера!", "err");
             await sb.from('users').update({ stars: user.stars - amt }).eq('username', user.username);
@@ -268,10 +264,10 @@
         async function claim() {
             const c = document.getElementById('c-code').value.trim();
             const { data: ch } = await sb.from('checks').select('*').eq('code', c).maybeSingle();
-            if(!ch || ch.uses_left <= 0) return notify("Код не работает", "err");
+            if(!ch || ch.uses_left <= 0) return notify("Ошибка кода", "err");
             await sb.from('users').update({ stars: user.stars + ch.amount }).eq('username', user.username);
             await sb.from('checks').update({ uses_left: ch.uses_left - 1 }).eq('code', c);
-            notify("Звезды ваши!");
+            notify("Звезды зачислены!");
         }
 
         function tab(t, btn) {
