@@ -43,7 +43,7 @@
         .view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
-        .msg { padding: 15px 20px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 85%; animation: slideUp 0.3s ease; }
+        .msg { padding: 15px 20px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 85%; animation: slideUp 0.3s ease; position: relative; }
         .msg.mine { align-self: flex-end; border-color: #402000; background: #150d00; }
         .msg b { color: var(--accent); cursor: pointer; font-size: 14px; text-decoration: underline; }
         .msg i { color: #555; font-style: normal; font-size: 11px; margin-left: 5px; font-weight: 400; }
@@ -79,7 +79,12 @@
             <h2 id="m-name" style="margin:0; font-size: 24px;">USER</h2>
             <p id="m-stars" style="color:var(--accent); font-weight:900; font-size:26px; margin:10px 0;">⭐ 0</p>
             <div id="m-nfts" style="font-size:12px; color:#555; margin-top:15px; line-height:1.4; background: #000; padding: 10px; border-radius: 15px; border: 1px solid #111;"></div>
-            <button class="btn" style="width:100%; margin-top:30px; background: #fff;" onclick="closeProfile()">ЗАКРЫТЬ</button>
+            
+            <div id="admin-actions" style="display:none; margin-top:20px; border-top:1px solid #222; padding-top:20px;">
+                <button id="mute-btn" class="btn" style="width:100%; background:var(--god); color:#fff;" onclick="toggleMute()">МУТ / РАЗМУТ</button>
+            </div>
+
+            <button class="btn" style="width:100%; margin-top:15px; background: #fff;" onclick="closeProfile()">ЗАКРЫТЬ</button>
         </div>
     </div>
 
@@ -142,10 +147,10 @@
                     <h2 style="color:var(--god); margin-top:0;">ADMIN CONTROL</h2>
                     <p style="color: #777;">Создать чек на звезды:</p>
                     <div style="display:flex; gap:10px; margin-bottom: 20px;">
-                        <input type="number" id="gen-amt" style="flex:1; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="Сумма">
+                        <input type="number" id="gen-amt" style="flex:1; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="Сумма звезд">
                         <button class="btn" style="background:var(--god); color:#fff;" onclick="createCheck()">СОЗДАТЬ</button>
                     </div>
-                    <div id="last-check" style="color:var(--accent); font-weight: bold; margin-bottom: 20px; text-align: center;"></div>
+                    <div id="last-check" style="background:#111; padding:15px; border-radius:10px; color:var(--accent); font-weight: bold; margin-bottom: 20px; text-align: center; border: 1px dashed var(--accent);">КОД ПОЯВИТСЯ ЗДЕСЬ</div>
                     <hr style="border: 0; border-top: 1px solid #222; margin: 20px 0;">
                     <button class="btn" style="background:#222; color:#fff; width:100%; margin-bottom:10px;" onclick="resetNFTs()">СБРОСИТЬ ВСЕ ЮЗЕРНЕЙМЫ</button>
                     <button class="btn" style="background:#222; color:#fff; width:100%;" onclick="clearAllChat()">ОЧИСТИТЬ ВЕСЬ ЧАТ</button>
@@ -161,6 +166,7 @@
         
         let user = null;
         let allNFTs = [];
+        let viewingUser = null; // Для действий админа в профиле
 
         async function auth() {
             const u = document.getElementById('log-u').value.trim();
@@ -169,7 +175,7 @@
             try {
                 let { data: ex } = await sb.from('users').select('*').eq('username', u).maybeSingle();
                 if(!ex) {
-                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 100 }]).select().single();
+                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 500 }]).select().single();
                     user = n;
                 } else {
                     if(ex.password === p) user = ex;
@@ -182,17 +188,22 @@
         async function start() {
             document.getElementById('p-auth').classList.remove('active');
             document.getElementById('p-main').classList.add('active');
-            if(user.username.toLowerCase() === 'admin') document.getElementById('god-menu').style.display = 'block';
+            
+            // Если зашли под админом
+            if(user.username.toLowerCase() === 'admin') {
+                document.getElementById('god-menu').style.display = 'block';
+            }
             
             await updateNFTCache();
             updateUI(); loadChat(); loadNFTs();
 
+            // Подписки на реалтайм
             sb.channel('m').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadChat()).subscribe();
             sb.channel('f').on('postgres_changes', { event: '*', schema: 'public', table: 'fragment_market' }, async () => {
                 await updateNFTCache(); loadChat(); loadNFTs();
             }).subscribe();
-            sb.channel('u').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (payload) => {
-                user = payload.new; updateUI();
+            sb.channel('u').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (p) => {
+                user = p.new; updateUI();
             }).subscribe();
         }
 
@@ -222,28 +233,57 @@
         }
 
         function updateUI() {
-            document.getElementById('my-name').innerText = user.username;
+            document.getElementById('my-name').innerText = user.username + (user.is_muted ? " [MUTED]" : "");
             document.getElementById('my-stars').innerText = `⭐ ${(user.stars || 0).toLocaleString()}`;
             document.getElementById('my-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.username}`;
         }
 
         async function openProfile(name) {
-            const { data } = await sb.from('users').select('*').eq('username', name).maybeSingle();
-            if(data) {
+            const { data: target } = await sb.from('users').select('*').eq('username', name).maybeSingle();
+            if(target) {
+                viewingUser = target;
                 const nftList = allNFTs.filter(n => n.owner === name).map(n => n.username_text).join(', ');
-                document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.username}`;
-                document.getElementById('m-name').innerText = data.username;
-                document.getElementById('m-stars').innerText = `⭐ ${(data.stars || 0).toLocaleString()}`;
+                document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${target.username}`;
+                document.getElementById('m-name').innerText = target.username + (target.is_muted ? " (В МУТЕ)" : "");
+                document.getElementById('m-stars').innerText = `⭐ ${(target.stars || 0).toLocaleString()}`;
                 document.getElementById('m-nfts').innerText = nftList ? "Владеет: " + nftList : "НЕТ NFT ИМЕН";
+                
+                // Кнопки админа
+                const actionBox = document.getElementById('admin-actions');
+                if(user.username.toLowerCase() === 'admin' && target.username.toLowerCase() !== 'admin') {
+                    actionBox.style.display = 'block';
+                    document.getElementById('mute-btn').innerText = target.is_muted ? "РАЗМУТИТЬ" : "ДАТЬ МУТ";
+                } else {
+                    actionBox.style.display = 'none';
+                }
+
                 document.getElementById('modal-overlay').style.display = 'block';
             }
         }
 
         function closeProfile() { document.getElementById('modal-overlay').style.display = 'none'; }
 
+        // --- МУТ ---
+        async function toggleMute() {
+            if(!viewingUser) return;
+            const newState = !viewingUser.is_muted;
+            const { error } = await sb.from('users').update({ is_muted: newState }).eq('id', viewingUser.id);
+            if(!error) {
+                notify(newState ? "Пользователь замучен" : "Пользователь размучен");
+                closeProfile();
+            }
+        }
+
         async function send() {
-            const i = document.getElementById('m-in'); if(!i.value.trim()) return;
-            await sb.from('messages').insert([{ username: user.username, text: i.value }]); i.value = '';
+            // Проверка на мут перед отправкой
+            if(user.is_muted) return notify("Вы в муте и не можете писать!", "err");
+            
+            const i = document.getElementById('m-in'); 
+            const val = i.value.trim();
+            if(!val) return;
+            
+            await sb.from('messages').insert([{ username: user.username, text: val }]); 
+            i.value = '';
         }
 
         async function mint() {
@@ -251,9 +291,8 @@
             if(!n.startsWith('@')) return notify("Нужен @ в начале!", "err");
             const { error } = await sb.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
             if(error) return notify("Это имя уже занято!", "err");
-            notify("Имя успешно получено!"); 
+            notify("NFT Получен!"); 
             document.getElementById('n-name').value = '';
-            await updateNFTCache(); loadNFTs(); loadChat();
         }
 
         async function loadNFTs() {
@@ -263,58 +302,63 @@
             });
         }
 
-        // --- ЛОГИКА ЧЕКОВ (ADMIN) ---
+        // --- ЧЕКИ ---
         async function createCheck() {
             const amt = parseInt(document.getElementById('gen-amt').value);
             if(!amt || amt <= 0) return notify("Введите сумму!", "err");
-            const code = "MOPSO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            const code = "MOPSO-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+            
             const { error } = await sb.from('checks').insert([{ code: code, amount: amt, is_used: false }]);
-            if(error) return notify("Ошибка БД!", "err");
-            document.getElementById('last-check').innerText = "КОД: " + code;
-            notify("Чек создан!");
+            if(!error) {
+                document.getElementById('last-check').innerText = code;
+                notify("Чек создан!");
+            } else {
+                notify("Ошибка БД", "err");
+            }
         }
 
         async function redeemCheck() {
             const code = document.getElementById('check-code').value.trim();
             if(!code) return notify("Введите код!", "err");
+            
             const { data: check } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-            if(!check) return notify("Код недействителен!", "err");
             
+            if(!check) return notify("Код неверен или использован!", "err");
+            
+            // 1. Помечаем чек как использованный
             await sb.from('checks').update({ is_used: true }).eq('id', check.id);
-            const { error } = await sb.from('users').update({ stars: user.stars + check.amount }).eq('id', user.id);
+            // 2. Добавляем звезды
+            await sb.from('users').update({ stars: user.stars + check.amount }).eq('id', user.id);
             
-            if(!error) {
-                notify(`Получено ⭐ ${check.amount}`);
-                document.getElementById('check-code').value = '';
-            }
+            notify(`Успешно! +⭐ ${check.amount}`);
+            document.getElementById('check-code').value = '';
         }
 
         async function transfer() {
             const to = document.getElementById('g-to').value.trim();
             const amt = parseInt(document.getElementById('g-amt').value);
-            if(!to || !amt || amt <= 0) return notify("Заполни поля!", "err");
-            if(user.stars < amt) return notify("Недостаточно звезд!", "err");
+            if(user.stars < amt) return notify("Не хватает звезд!", "err");
             
-            const { data: rec } = await sb.from('users').select('*').eq('username', to).maybeSingle();
-            if(!rec) return notify("Игрок не найден!", "err");
+            const { data: target } = await sb.from('users').select('*').eq('username', to).maybeSingle();
+            if(!target) return notify("Игрок не найден", "err");
 
-            await sb.from('users').update({ stars: rec.stars + amt }).eq('username', to);
+            await sb.from('users').update({ stars: target.stars + amt }).eq('username', to);
             await sb.from('users').update({ stars: user.stars - amt }).eq('id', user.id);
-            notify("Звезды отправлены!");
-            document.getElementById('g-amt').value = '';
+            notify("Перевод выполнен");
         }
 
         async function resetNFTs() {
-            if(confirm("ОБНУЛИТЬ ВСЕ ИМЕНА?")) {
+            if(confirm("Удалить все NFT?")) {
                 await sb.from('fragment_market').delete().neq('id', 0);
-                notify("Рынок очищен!"); updateNFTCache(); loadNFTs();
+                notify("Рынок очищен");
             }
         }
 
         async function clearAllChat() {
-            if(confirm("УДАЛИТЬ ВСЕ СООБЩЕНИЯ?")) {
+            if(confirm("Очистить чат?")) {
                 await sb.from('messages').delete().neq('id', 0);
-                notify("Чат очищен!");
+                notify("Чат пуст");
             }
         }
 
