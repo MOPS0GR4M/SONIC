@@ -3,267 +3,463 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM | SUPREME CONTROL</title>
+    <title>MOPSOGRAM | SUPREME CONTROL SYSTEM</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
-            --bg: #020202; --card: #0a0a0a; --accent: #ff6600; --text: #ffffff; 
-            --text-dim: #777; --border: #151515; --bot: #00e5ff; --err: #ff3333;
+            --bg: #020202; 
+            --card: #0a0a0a; 
+            --accent: #ff6600; 
+            --accent-glow: rgba(255, 102, 0, 0.3);
+            --text: #ffffff; 
+            --text-dim: #888; 
+            --border: #1a1a1a; 
+            --bot: #00e5ff; 
+            --err: #ff3333;
+            --grad: linear-gradient(135deg, #ff6600, #ff9900);
         }
 
-        * { box-sizing: border-box; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Segoe UI', sans-serif; }
+        /* ОСНОВНЫЕ СТИЛИ */
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Inter', 'Segoe UI', sans-serif; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* ANIMATIONS */
-        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; opacity: 0; transform: scale(1.05); }
-        .active { display: flex; opacity: 1; transform: scale(1); }
+        /* АНИМАЦИИ СТРАНИЦ */
+        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; opacity: 0; transform: scale(1.02); filter: blur(10px); }
+        .active { display: flex; opacity: 1; transform: scale(1); filter: blur(0px); }
 
-        /* AUTH */
-        .auth-screen { width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a0f00, #000); }
-        .auth-card { background: var(--card); border: 1px solid var(--border); padding: 50px; border-radius: 40px; width: 360px; text-align: center; box-shadow: 0 0 30px rgba(255,102,0,0.1); }
-        .auth-card h1 { font-size: 28px; letter-spacing: 10px; color: var(--accent); margin-bottom: 30px; font-weight: 900; text-shadow: 0 0 15px rgba(255,102,0,0.5); }
+        /* ЭКРАН АВТОРИЗАЦИИ */
+        .auth-screen { width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #1a0d00 0%, #000 100%); }
+        .auth-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            padding: 60px; 
+            border-radius: 50px; 
+            width: 400px; 
+            text-align: center; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow);
+        }
+        .auth-card h1 { font-size: 32px; letter-spacing: 12px; color: var(--accent); margin-bottom: 40px; font-weight: 900; text-transform: uppercase; }
+        .auth-card input { margin-bottom: 15px; background: #000; border: 1px solid var(--border); padding: 18px; border-radius: 15px; color: #fff; width: 100%; outline: none; font-size: 16px; }
+        .auth-card input:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
 
-        /* SIDEBAR */
-        .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .profile-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
-        .user-avatar { width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 12px; object-fit: cover; }
-        .star-balance { font-size: 26px; font-weight: 900; color: var(--accent); margin-top: 8px; }
+        /* САЙДБАР (МЕНЮ) */
+        .sidebar { width: 320px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+        .profile-area { padding: 50px 20px; text-align: center; border-bottom: 1px solid var(--border); background: linear-gradient(to bottom, #0d0d0d, #0a0a0a); }
+        .user-avatar { 
+            width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); 
+            margin-bottom: 15px; box-shadow: 0 0 20px var(--accent-glow); object-fit: cover;
+        }
+        .star-balance { font-size: 28px; font-weight: 900; color: var(--accent); margin-top: 10px; text-shadow: 0 0 10px var(--accent-glow); }
 
-        .nav-btn { padding: 18px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-left: 0px solid var(--accent); }
-        .nav-btn:hover { color: var(--text); background: rgba(255,102,0,0.05); padding-left: 35px; }
-        .nav-btn.active-tab { color: var(--accent); background: rgba(255,102,0,0.07); border-left: 4px solid var(--accent); }
+        .nav-group { flex: 1; padding: 20px 0; }
+        .nav-btn { 
+            padding: 20px 35px; cursor: pointer; color: var(--text-dim); font-weight: 800; font-size: 12px; 
+            text-transform: uppercase; letter-spacing: 2px; border-left: 0px solid var(--accent); display: flex; align-items: center; gap: 15px;
+        }
+        .nav-btn:hover { color: var(--text); background: rgba(255,102,0,0.05); padding-left: 45px; }
+        .nav-btn.active-tab { color: var(--accent); background: rgba(255,102,0,0.08); border-left: 5px solid var(--accent); }
 
-        /* MAIN CONTENT */
-        .main-content { flex: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+        /* ГЛАВНЫЙ КОНТЕНТ */
+        .main-content { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; opacity: 0; }
         
-        .msg { max-width: 85%; padding: 14px 18px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); position: relative; animation: msgSlide 0.4s ease-out; }
-        @keyframes msgSlide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        /* ЧАТ */
+        #chat-box { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .msg { 
+            max-width: 80%; padding: 16px 20px; border-radius: 25px; background: #0d0d0d; border: 1px solid var(--border); 
+            position: relative; animation: msgFade 0.5s ease-out; line-height: 1.5; 
+        }
+        @keyframes msgFade { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
         
-        .msg-out { align-self: flex-end; border-color: #301b00; background: #150d00; }
-        .msg-bot { align-self: center; border-color: var(--bot); color: var(--bot); text-align: center; width: 90%; background: rgba(0, 229, 255, 0.05); border-style: dashed; }
+        .msg-out { align-self: flex-end; border-color: #402600; background: linear-gradient(135deg, #150d00, #0d0d0d); }
+        .msg-bot { align-self: center; border-color: var(--bot); color: var(--bot); text-align: center; width: 95%; background: rgba(0, 229, 255, 0.03); border-style: dashed; }
         
-        .msg-top { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .msg b { color: var(--accent); cursor: pointer; font-size: 13px; }
-        .del-btn { color: var(--err); cursor: pointer; font-weight: 900; font-size: 14px; opacity: 0.5; }
-        .del-btn:hover { opacity: 1; transform: scale(1.2); }
+        .msg-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+        .msg b { color: var(--accent); cursor: pointer; font-weight: 900; }
+        .msg b:hover { text-decoration: underline; }
+        .del-btn { color: var(--err); cursor: pointer; font-weight: 900; padding: 0 5px; opacity: 0.3; }
+        .del-btn:hover { opacity: 1; transform: scale(1.3); }
 
-        .input-bar { padding: 20px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        input { background: #050505; border: 1px solid var(--border); color: #fff; padding: 14px; border-radius: 12px; width: 100%; outline: none; }
-        input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255,102,0,0.2); }
-        .btn { padding: 14px 24px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; font-size: 11px; text-transform: uppercase; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,102,0,0.3); }
+        /* ПОЛЕ ВВОДА */
+        .input-wrapper { padding: 25px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 15px; align-items: center; }
+        .input-wrapper input { 
+            flex: 1; background: #050505; border: 1px solid var(--border); color: #fff; padding: 18px 25px; 
+            border-radius: 20px; outline: none; font-size: 15px; 
+        }
+        .input-wrapper input:focus { border-color: var(--accent); }
 
-        /* MODAL & TOAST */
-        #p-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(5px); }
-        .p-card { background:var(--card); border:1px solid var(--accent); padding:40px; border-radius:40px; text-align:center; min-width:300px; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 50px; background: var(--accent); color: #000; font-weight: bold; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        /* КНОПКИ */
+        .btn { 
+            padding: 16px 30px; border-radius: 18px; border: none; background: var(--accent); color: #000; 
+            font-weight: 900; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(255,102,0,0.2);
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255,102,0,0.4); }
+        .btn:active { transform: translateY(0); }
+
+        /* ВКЛАДКИ БАНК И ФРАГМЕНТ */
+        .tab-view { padding: 40px; overflow-y: auto; display: none; flex-direction: column; gap: 30px; }
+        .glass-card { 
+            background: var(--card); border: 1px solid var(--border); padding: 35px; border-radius: 35px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        }
+        .glass-card h2 { margin-top: 0; color: var(--accent); letter-spacing: 2px; }
+
+        /* ПРОФИЛЬ OVERLAY */
+        #p-overlay { 
+            position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); 
+            display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(10px); 
+        }
+        .p-card { 
+            background:var(--card); border:1px solid var(--accent); padding:50px; border-radius:50px; 
+            text-align:center; min-width:350px; animation: modalIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        @keyframes modalIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* УВЕДОМЛЕНИЯ */
+        #toast { 
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%); 
+            padding: 20px 40px; border-radius: 50px; background: var(--accent); color: #000; 
+            font-weight: 900; z-index: 9999; box-shadow: 0 10px 40px rgba(0,0,0,0.6); 
+        }
+
+        /* СКРОЛЛБАР */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div id="toast">SYSTEM ONLINE</div>
+    <div id="toast">SYSTEM INITIALIZED</div>
 
     <div id="p-overlay" onclick="this.style.display='none'">
         <div class="p-card" onclick="event.stopPropagation()">
-            <img class="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-            <h2 id="p-user" style="color:var(--accent); margin: 10px 0;"></h2>
-            <div id="p-stars" style="font-size:24px; font-weight:900;"></div>
-            <div id="p-nicks" style="margin-top:15px; font-size:12px; color:var(--text-dim); border-top: 1px solid var(--border); padding-top: 10px;"></div>
+            <img class="user-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Mopso" id="p-img">
+            <h2 id="p-user" style="color:var(--accent); font-size: 32px; margin: 10px 0;"></h2>
+            <div id="p-stars" style="font-size:24px; font-weight:900; background: rgba(255,102,0,0.1); padding: 10px; border-radius: 15px;"></div>
+            <p style="color:var(--text-dim); margin-top: 20px;">Статус: <span style="color:#00ff00">Online</span></p>
+            <button class="btn" style="margin-top: 20px; width: 100%;" onclick="document.getElementById('p-overlay').style.display='none'">ЗАКРЫТЬ</button>
         </div>
     </div>
 
     <div id="auth-page" class="page active auth-screen">
         <div class="auth-card">
             <h1>MOPSOGRAM</h1>
-            <input type="text" id="u-login" placeholder="ЛОГИН" style="margin-bottom: 10px;">
+            <p style="color:var(--text-dim); margin-bottom: 30px;">ENTER THE VOID</p>
+            <input type="text" id="u-login" placeholder="ЛОГИН">
             <input type="password" id="u-pass" placeholder="ПАРОЛЬ">
-            <button class="btn" style="width: 100%; margin-top: 20px;" onclick="auth()">OPEN GATE</button>
+            <button class="btn" style="width: 100%; margin-top: 25px; padding: 20px;" onclick="auth()">OPEN THE GATE</button>
         </div>
     </div>
 
     <div id="main-page" class="page">
         <div class="sidebar">
             <div class="profile-area">
-                <img class="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-                <div id="display-u" style="font-weight:800; font-size:18px;">USER</div>
+                <img class="user-avatar" id="my-avatar" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin">
+                <div id="display-u" style="font-weight:900; font-size:22px; letter-spacing: 1px;">USERNAME</div>
                 <div id="display-s" class="star-balance">⭐ 0</div>
             </div>
-            <div class="nav-btn active-tab" onclick="tab('chat', this)">💬 ЧАТ</div>
-            <div class="nav-btn" onclick="tab('bank', this)">💰 БАНК</div>
-            <div class="nav-btn" onclick="tab('frag', this)">💎 ФРАГМЕНТ</div>
+            <div class="nav-group">
+                <div class="nav-btn active-tab" onclick="tab('chat', this)"><span>💬</span> ОБЩИЙ ЧАТ</div>
+                <div class="nav-btn" onclick="tab('bank', this)"><span>💰</span> БАНКОВСКИЙ ХАБ</div>
+                <div class="nav-btn" onclick="tab('frag', this)"><span>💎</span> FRAGMENT NFT</div>
+            </div>
+            <div style="padding: 20px; border-top: 1px solid var(--border);">
+                <button class="btn" style="width:100%; background: #111; color: #fff; border: 1px solid var(--border);" onclick="location.reload()">ВЫХОД</button>
+            </div>
         </div>
 
-        <div id="tab-chat" class="main-content">
+        <div id="tab-chat" class="main-content" style="display: flex;">
             <div id="chat-box"></div>
-            <div class="input-bar">
-                <input type="text" id="m-input" placeholder="Сообщение или !check сумма кол-во" onkeypress="if(event.key==='Enter') send()">
-                <button class="btn" onclick="send()">SEND</button>
+            <div class="input-wrapper">
+                <input type="text" id="m-input" placeholder="Напишите что-нибудь... ( !check сумма для админов )" onkeypress="if(event.key==='Enter') send()">
+                <button class="btn" onclick="send()">ОТПРАВИТЬ</button>
             </div>
         </div>
 
-        <div id="tab-bank" class="main-content" style="display:none; padding:30px;">
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border); margin-bottom:20px;">
-                <h3 style="color:var(--accent); margin-top:0;">ПЕРЕВОД ЗВЕЗД</h3>
-                <input type="text" id="gift-to" placeholder="Логин получателя" style="margin-bottom:10px;">
-                <input type="number" id="gift-amt" placeholder="Сумма ⭐">
-                <button class="btn" style="width:100%; margin-top:15px;" onclick="transfer()">ОТПРАВИТЬ</button>
+        <div id="tab-bank" class="main-content tab-view">
+            <div class="glass-card">
+                <h2>БЫСТРЫЙ ПЕРЕВОД</h2>
+                <p style="color:var(--text-dim)">Переводите звезды мгновенно любому пользователю системы.</p>
+                <div style="display:flex; flex-direction:column; gap:15px; margin-top:20px;">
+                    <input type="text" id="gift-to" placeholder="ID получателя (username)">
+                    <input type="number" id="gift-amt" placeholder="Количество звезд">
+                    <button class="btn" onclick="transfer()">ПОДТВЕРДИТЬ ТРАНЗАКЦИЮ</button>
+                </div>
             </div>
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border);">
-                <h3 style="margin-top:0;">АКТИВАЦИЯ ЧЕКА</h3>
-                <input type="text" id="check-code" placeholder="GIFT-XXXXXX">
-                <button class="btn" style="width:100%; background:#fff; color:#000; margin-top:15px;" onclick="redeem()">ПОЛУЧИТЬ</button>
+            <div class="glass-card">
+                <h2>АКТИВАЦИЯ ВАУЧЕРА</h2>
+                <p style="color:var(--text-dim)">Введите секретный код для пополнения баланса.</p>
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <input type="text" id="check-code" placeholder="GIFT-XXXXXX">
+                    <button class="btn" style="background:#fff; color:#000" onclick="redeem()">CLAIM</button>
+                </div>
             </div>
         </div>
 
-        <div id="tab-frag" class="main-content" style="display:none; padding:30px;">
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border); margin-bottom:20px;">
-                <h3 style="color:var(--accent); margin-top:0;">MINT NFT NAME</h3>
-                <input type="text" id="new-nick" placeholder="@username">
-                <button class="btn" style="width:100%; margin-top:15px;" onclick="mint()">КУПИТЬ (5000 ⭐)</button>
+        <div id="tab-frag" class="main-content tab-view">
+            <div class="glass-card">
+                <h2>MARKETPLACE</h2>
+                <p style="color:var(--text-dim)">Создавайте уникальные NFT-имена. Сейчас это <b>БЕСПЛАТНО</b>.</p>
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <input type="text" id="new-nick" placeholder="@unique_name">
+                    <button class="btn" onclick="mint()">MINT NFT</button>
+                </div>
             </div>
-            <div id="nick-list" style="overflow-y:auto;"></div>
+            <h3 style="margin-left: 10px; letter-spacing: 2px;">RECENT MINTS</h3>
+            <div id="nick-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
         </div>
     </div>
 
     <script>
+        // КОНФИГУРАЦИЯ SUPABASE
         const SB_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
         const client = supabase.createClient(SB_URL, SB_KEY);
+        
         let user = null;
 
+        // ФУНКЦИЯ АВТОРИЗАЦИИ
         async function auth() {
             const u = document.getElementById('u-login').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return notify("Заполни поля!", "err");
+            if(!u || !p) return notify("Введите данные!", "err");
 
             try {
-                let { data: ex, error: err } = await client.from('users').select('*').eq('username', u).maybeSingle();
-                if(err) throw err;
-
-                if(!ex) {
-                    const { data: n, error: rE } = await client.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
-                    if(rE) throw rE;
-                    user = n;
+                // Пытаемся найти
+                let { data: existing, error: fetchErr } = await client.from('users').select('*').eq('username', u).maybeSingle();
+                
+                if(!existing) {
+                    // Регистрация нового
+                    const { data: newUser, error: regErr } = await client.from('users').insert([{ 
+                        username: u, 
+                        password: p, 
+                        stars: 5000 
+                    }]).select().single();
+                    if(regErr) throw regErr;
+                    user = newUser;
+                    notify("Добро пожаловать в систему!");
                 } else {
-                    if(ex.password === p) { user = ex; } 
-                    else { return notify("Неверный пароль!", "err"); }
+                    // Проверка пароля
+                    if(existing.password === p) {
+                        user = existing;
+                        notify("Доступ разрешен. Загрузка...");
+                    } else {
+                        return notify("Ошибка доступа: Неверный пароль", "err");
+                    }
                 }
-                if(user) start();
-            } catch(e) { alert("Ошибка входа: " + e.message); }
+                
+                if(user) {
+                    // Защита от пустых полей в базе (чтобы не было черного экрана)
+                    if(user.stars === null) user.stars = 0;
+                    start();
+                }
+            } catch(e) { 
+                alert("Критическая ошибка БД: " + e.message);
+                console.error(e);
+            }
         }
 
+        // ЗАПУСК ИНТЕРФЕЙСА
         function start() {
-            const aP = document.getElementById('auth-page');
-            const mP = document.getElementById('main-page');
-            aP.style.opacity = '0';
+            const authPage = document.getElementById('auth-page');
+            const mainPage = document.getElementById('main-page');
+            
+            authPage.style.opacity = '0';
+            authPage.style.transform = 'scale(0.9)';
+            
             setTimeout(() => {
-                aP.classList.remove('active');
-                mP.classList.add('active');
-                setTimeout(() => mP.style.opacity = '1', 50);
-                updateUI(); loadMsgs(); loadNicks();
-            }, 300);
+                authPage.classList.remove('active');
+                mainPage.classList.add('active');
+                
+                // Плавное появление вкладок
+                setTimeout(() => {
+                    const activeContent = document.querySelector('.main-content[style*="flex"]');
+                    if(activeContent) activeContent.style.opacity = '1';
+                }, 100);
 
-            client.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs()).subscribe();
-            client.channel('u').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `username=eq.${user.username}` }, (pl) => {
-                user = pl.new; updateUI();
-            }).subscribe();
+                // Обновляем данные
+                document.getElementById('my-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.username}`;
+                updateUI(); 
+                loadMsgs(); 
+                loadNicks();
+
+                // Подписки Realtime
+                client.channel('chat_updates').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs()).subscribe();
+                client.channel('user_updates').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `username=eq.${user.username}` }, (payload) => {
+                    user = payload.new;
+                    updateUI();
+                }).subscribe();
+            }, 400);
         }
 
+        // ОБНОВЛЕНИЕ ИНТЕРФЕЙСА
         function updateUI() {
             if(!user) return;
-            document.getElementById('display-u').innerText = user.username;
+            document.getElementById('display-u').innerText = user.username.toUpperCase();
             document.getElementById('display-s').innerText = `⭐ ${(user.stars || 0).toLocaleString()}`;
         }
 
+        // РАБОТА С СООБЩЕНИЯМИ
         async function loadMsgs() {
-            const { data } = await client.from('messages').select('*').order('created_at', { ascending: true });
-            const b = document.getElementById('chat-box'); b.innerHTML = '';
+            const { data, error } = await client.from('messages').select('*').order('created_at', { ascending: true });
+            if(error) return;
+
+            const box = document.getElementById('chat-box');
+            box.innerHTML = '';
+            
             const isAdmin = user.username.toLowerCase() === 'admin';
-            data?.forEach(m => {
+
+            data.forEach(m => {
                 const isMe = m.username === user.username;
                 const isBot = m.username.includes('BOT');
-                b.innerHTML += `<div class="msg ${isMe ? 'msg-out' : ''} ${isBot ? 'msg-bot' : ''}">
-                    <div class="msg-top"><b onclick="showProfile('${m.username}')">${m.username}</b>
-                    ${isAdmin && !isBot ? `<span class="del-btn" onclick="deleteMsg(${m.id})">×</span>` : ''}</div>
-                    <div>${m.text}</div></div>`;
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `msg ${isMe ? 'msg-out' : ''} ${isBot ? 'msg-bot' : ''}`;
+                msgDiv.innerHTML = `
+                    <div class="msg-top">
+                        <b onclick="showProfile('${m.username}')">${m.username}</b>
+                        ${isAdmin && !isBot ? `<span class="del-btn" onclick="deleteMsg(${m.id})">УДАЛИТЬ</span>` : ''}
+                    </div>
+                    <div class="msg-text">${m.text}</div>
+                `;
+                box.appendChild(msgDiv);
             });
-            b.scrollTop = b.scrollHeight;
+            box.scrollTop = box.scrollHeight;
         }
 
         async function send() {
-            const i = document.getElementById('m-input');
-            const v = i.value.trim(); if(!v) return;
-            if(user.username.toLowerCase() === 'admin' && v.startsWith('!check')) {
-                const p = v.split(' '); const amt = parseInt(p[1]) || 1000; const us = parseInt(p[2]) || 1;
+            const input = document.getElementById('m-input');
+            const val = input.value.trim();
+            if(!val) return;
+
+            // Админ-команда на чек
+            if(user.username.toLowerCase() === 'admin' && val.startsWith('!check')) {
+                const parts = val.split(' ');
+                const amount = parseInt(parts[1]) || 5000;
+                const uses = parseInt(parts[2]) || 1;
                 const code = "GIFT-" + Math.random().toString(36).substring(2,8).toUpperCase();
-                await client.from('checks').insert([{ code: code, amount: amt, uses_left: us }]);
-                await client.from('messages').insert([{ username: '🤖 MOPSO-BOT', text: `🎁 <b>ДРОП!</b><br>Код: <b>${code}</b><br>Сумма: ⭐ ${amt} | Мест: ${us}` }]);
-            } else {
-                await client.from('messages').insert([{ username: user.username, text: v }]);
+                
+                const { error } = await client.from('checks').insert([{ code: code, amount: amount, uses_left: uses }]);
+                if(error) return notify("Ошибка БД", "err");
+
+                await client.from('messages').insert([{ 
+                    username: '🤖 MOPSO-BOT', 
+                    text: `📢 <b>АДМИН-РАЗДАЧА!</b><br>Код: <span style="color:#fff; font-size:20px;">${code}</span><br>Номинал: ⭐ ${amount} | Мест: ${uses}` 
+                }]);
+                input.value = ''; return;
             }
-            i.value = '';
+
+            await client.from('messages').insert([{ username: user.username, text: val }]);
+            input.value = '';
         }
 
+        async function deleteMsg(id) {
+            await client.from('messages').delete().eq('id', id);
+        }
+
+        // БАНКОВСКИЕ ОПЕРАЦИИ
         async function transfer() {
             const to = document.getElementById('gift-to').value.trim();
             const amt = parseInt(document.getElementById('gift-amt').value);
-            if(user.stars < amt) return notify("Мало звезд!", "err");
-            const { data: r } = await client.from('users').select('*').eq('username', to).maybeSingle();
-            if(!r) return notify("Нет такого юзера!", "err");
+
+            if(!amt || amt <= 0) return notify("Сумма?", "err");
+            if(user.stars < amt) return notify("Недостаточно звезд!", "err");
+
+            const { data: receiver, error } = await client.from('users').select('*').eq('username', to).maybeSingle();
+            if(!receiver) return notify("Юзер не найден", "err");
+
+            // Транзакция
             await client.from('users').update({ stars: user.stars - amt }).eq('username', user.username);
-            await client.from('users').update({ stars: r.stars + amt }).eq('username', to);
-            notify("⭐ Отправлено!");
+            await client.from('users').update({ stars: receiver.stars + amt }).eq('username', to);
+            
+            notify("⭐ ПЕРЕВОД ВЫПОЛНЕН!");
+            document.getElementById('gift-to').value = '';
+            document.getElementById('gift-amt').value = '';
         }
 
         async function redeem() {
-            const c = document.getElementById('check-code').value.trim();
-            const { data: ch } = await client.from('checks').select('*').eq('code', c).maybeSingle();
-            if(!ch || ch.uses_left <= 0) return notify("Код не работает!", "err");
-            await client.from('users').update({ stars: user.stars + ch.amount }).eq('username', user.username);
-            await client.from('checks').update({ uses_left: ch.uses_left - 1 }).eq('code', c);
-            notify("⭐ Получено!");
+            const code = document.getElementById('check-code').value.trim();
+            const { data: check } = await client.from('checks').select('*').eq('code', code).maybeSingle();
+
+            if(!check || check.uses_left <= 0) return notify("Код недействителен", "err");
+
+            await client.from('users').update({ stars: user.stars + check.amount }).eq('username', user.username);
+            await client.from('checks').update({ uses_left: check.uses_left - 1 }).eq('code', code);
+            
+            notify(`⭐ ЗАЧИСЛЕНО ${check.amount} ЗВЕЗД!`);
+            document.getElementById('check-code').value = '';
         }
 
+        // FRAGMENT NFT
         async function mint() {
-            const n = document.getElementById('new-nick').value.trim();
-            if(!n.startsWith('@') || user.stars < 5000) return notify("Надо @ и 5000 ⭐", "err");
-            const { error } = await client.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
-            if(error) return notify("Занято!", "err");
-            await client.from('users').update({ stars: user.stars - 5000 }).eq('username', user.username);
-            notify("Куплено!"); loadNicks();
+            const nick = document.getElementById('new-nick').value.trim();
+            if(!nick.startsWith('@')) return notify("Имя должно начинаться с @", "err");
+
+            const { error } = await client.from('fragment_market').insert([{ 
+                username_text: nick, 
+                owner: user.username 
+            }]);
+
+            if(error) return notify("Это имя уже занято!", "err");
+
+            notify("💎 NFT УСПЕШНО СОЗДАНО!");
+            document.getElementById('new-nick').value = '';
+            loadNicks();
         }
 
         async function loadNicks() {
-            const { data } = await client.from('fragment_market').select('*');
-            const l = document.getElementById('nick-list'); l.innerHTML = '';
-            data?.forEach(n => l.innerHTML += `<div style="padding:15px; background:#111; margin-bottom:10px; border-radius:15px; border:1px solid var(--border)">
-                <b style="color:var(--accent)">${n.username_text}</b><br><small>Владелец: ${n.owner}</small></div>`);
+            const { data } = await client.from('fragment_market').select('*').order('created_at', { ascending: false });
+            const list = document.getElementById('nick-list');
+            list.innerHTML = '';
+            
+            data?.forEach(n => {
+                list.innerHTML += `
+                    <div style="padding:20px; background:#111; border:1px solid var(--border); border-radius:20px;">
+                        <b style="color:var(--accent); font-size:18px;">${n.username_text}</b><br>
+                        <small style="color:var(--text-dim)">Owner: ${n.owner}</small>
+                    </div>
+                `;
+            });
         }
 
-        async function deleteMsg(id) { await client.from('messages').delete().eq('id', id); }
+        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        async function showProfile(name) {
+            const { data: target } = await client.from('users').select('*').eq('username', name).maybeSingle();
+            if(!target) return;
 
-        async function showProfile(n) {
-            const { data: u } = await client.from('users').select('*').eq('username', n).maybeSingle();
-            if(!u) return;
-            document.getElementById('p-user').innerText = u.username;
-            document.getElementById('p-stars').innerText = `⭐ ${(u.stars || 0).toLocaleString()}`;
+            document.getElementById('p-user').innerText = target.username;
+            document.getElementById('p-stars').innerText = `БАЛАНС: ⭐ ${(target.stars || 0).toLocaleString()}`;
+            document.getElementById('p-img').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${target.username}`;
             document.getElementById('p-overlay').style.display = 'flex';
         }
 
         function tab(t, el) {
-            document.querySelectorAll('.main-content').forEach(v => { v.style.display = 'none'; v.style.opacity = '0'; });
-            const tg = document.getElementById('tab-'+t); tg.style.display = 'flex';
-            setTimeout(() => tg.style.opacity = '1', 50);
+            // Прячем всё
+            document.querySelectorAll('.main-content').forEach(v => {
+                v.style.display = 'none';
+                v.style.opacity = '0';
+            });
+            
+            // Показываем нужное
+            const target = document.getElementById('tab-'+t);
+            if(t === 'chat') target.style.display = 'flex';
+            else target.style.display = 'flex'; // tab-view использует flex-direction column
+            
+            setTimeout(() => target.style.opacity = '1', 50);
+
+            // Кнопки меню
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-tab'));
             el.classList.add('active-tab');
         }
 
-        function notify(m, ty="success") {
-            const t = document.getElementById('toast'); t.innerText = m;
-            t.style.background = ty === "success" ? "var(--accent)" : "var(--err)";
-            t.style.top = "20px"; setTimeout(() => t.style.top = "-100px", 3000);
+        function notify(msg, type="success") {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.background = type === "success" ? "var(--accent)" : "var(--err)";
+            t.style.top = "30px";
+            setTimeout(() => t.style.top = "-100px", 3000);
         }
     </script>
 </body>
