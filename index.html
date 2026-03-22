@@ -3,81 +3,318 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM SUPREME 12.8</title>
-    
+    <title>MOPSOGRAM SUPREME 12.9</title>
+    <link rel="icon" href="data:,">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    
     <style>
-        /* Глобальные переменные стиля */
         :root { 
-            --bg: #000000; 
-            --card: #0a0a0a; 
-            --accent: #ff6600; 
-            --text-main: #ffffff; 
-            --text-dim: #777777; 
-            --border: #1a1a1a; 
-            --god-color: #ff0055; 
-            --error: #ff3333; 
-            --success: #00ff88;
+            --bg: #000; --card: #0a0a0a; --accent: #ff6600; 
+            --text: #fff; --text-dim: #777; --border: #1a1a1a; 
+            --god: #ff0055; --err: #ff3333; --success: #00ff88;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; }
+        .page.active { display: flex; }
+        
+        /* Sidebar */
+        .sidebar { width: 320px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
+        .profile-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
+        .user-avatar { width: 110px; height: 110px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 15px; cursor: pointer; transition: 0.3s; object-fit: cover; }
+        .balance { font-size: 32px; font-weight: 900; color: var(--accent); letter-spacing: -1px; }
+
+        .nav-item { padding: 22px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 12px; text-transform: uppercase; border-left: 4px solid transparent; transition: 0.2s; }
+        .nav-item.active { color: var(--accent); background: rgba(255,102,0,0.1); border-left-color: var(--accent); }
+        .god-item { color: var(--god) !important; border-top: 1px solid var(--border); margin-top: auto; }
+
+        /* Main View */
+        .view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
+        .msg { padding: 15px 20px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 85%; animation: msgIn 0.3s ease; }
+        .msg.mine { align-self: flex-end; border-color: #402000; background: #150d00; }
+        .msg b { color: var(--accent); cursor: pointer; font-size: 14px; text-decoration: underline; }
+        .msg i { color: #555; font-size: 11px; margin-left: 8px; font-style: normal; }
+
+        .tab-view { display: none; padding: 40px; flex-direction: column; gap: 25px; overflow-y: auto; height: 100%; }
+        .card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 30px; }
+        input { background: #000; border: 1px solid var(--border); color: #fff; padding: 15px 20px; border-radius: 15px; outline: none; width: 100%; }
+        .btn { padding: 15px 25px; border-radius: 15px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: 0.2s; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 18px 40px; border-radius: 50px; background: var(--accent); color: #000; font-weight: 900; z-index: 5000; transition: 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+        @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Modal */
+        #profile-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(10px); z-index:4000; align-items:center; justify-content:center; }
+        .modal-body { background: var(--card); border: 1px solid var(--border); border-radius: 40px; width: 360px; padding: 40px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="toast">СИСТЕМА SUPREME 12.9</div>
+
+    <div id="profile-modal" onclick="closeProfile()">
+        <div class="modal-body" onclick="event.stopPropagation()">
+            <img id="m-av" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--accent); margin-bottom:20px;">
+            <h2 id="m-name" style="margin:0; font-size: 28px;">USER</h2>
+            <p id="m-stars" style="color:var(--accent); font-weight:900; font-size:30px; margin:15px 0;">⭐ 0</p>
+            <div id="m-nfts" style="font-size:13px; color:#666; background: #000; padding: 15px; border-radius: 20px;"></div>
+            <div id="adm-tools" style="display:none; margin-top:25px; border-top:1px solid #222; padding-top:20px;">
+                <button class="btn" style="width:100%; background:var(--god); color:#fff;" onclick="toggleMute()">ПЕРЕКЛЮЧИТЬ МУТ</button>
+            </div>
+            <button class="btn" style="width:100%; margin-top:20px; background: #fff;" onclick="closeProfile()">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
+    <div id="p-auth" class="page active" style="align-items:center; justify-content:center;">
+        <div class="card" style="width:380px; text-align:center;">
+            <h1 style="color:var(--accent); letter-spacing:8px; margin-bottom:30px;">MOPSOGRAM</h1>
+            <input type="text" id="l-u" placeholder="ЛОГИН" style="margin-bottom:10px;">
+            <input type="password" id="l-p" placeholder="ПАРОЛЬ" style="margin-bottom:25px;">
+            <button class="btn" style="width:100%" onclick="auth()">ВОЙТИ В СИСТЕМУ</button>
+        </div>
+    </div>
+
+    <div id="p-app" class="page">
+        <div class="sidebar">
+            <div class="profile-area">
+                <img class="user-avatar" id="my-av" onclick="openProfile(user.username)">
+                <div id="my-name" style="font-weight: 900; font-size: 22px; margin-top: 10px;">USER</div>
+                <div id="my-stars" class="balance">⭐ 0</div>
+            </div>
+            <div class="nav-item active" onclick="tab('chat', this)">💬 ОБЩИЙ ЧАТ</div>
+            <div class="nav-item" onclick="tab('bank', this)">💰 БАНК / ЧЕКИ</div>
+            <div class="nav-item" onclick="tab('nft', this)">💎 FRAGMENT NFT</div>
+            <div id="god-tab" class="nav-item god-item" style="display:none;" onclick="tab('god', this)">⚡ GOD PANEL</div>
+            <div style="margin-top:auto; padding:25px;">
+                <button class="btn" style="width:100%; background:#111; color:#fff;" onclick="location.reload()">ВЫЙТИ</button>
+            </div>
+        </div>
+
+        <div class="view">
+            <div id="t-chat" class="tab-view" style="display:flex; padding:0;">
+                <div id="chat-box"></div>
+                <div style="padding:20px 30px; background:var(--card); border-top:1px solid var(--border); display:flex; gap:15px;">
+                    <input type="text" id="m-in" placeholder="Напишите сообщение..." onkeypress="if(event.key==='Enter') send()">
+                    <button class="btn" onclick="send()">ОТПРАВИТЬ</button>
+                </div>
+            </div>
+
+            <div id="t-bank" class="tab-view">
+                <div class="card">
+                    <h3>АКТИВИРОВАТЬ ЧЕК</h3>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="c-code" placeholder="MOPSO-XXXX">
+                        <button class="btn" onclick="claim()">ОК</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>ПЕРЕВЕСТИ ЗВЕЗДЫ</h3>
+                    <input type="text" id="t-to" style="margin-bottom:10px;" placeholder="Кому">
+                    <input type="number" id="t-amt" style="margin-bottom:20px;" placeholder="Сумма">
+                    <button class="btn" style="width:100%" onclick="transfer()">ПОДТВЕРДИТЬ</button>
+                </div>
+            </div>
+
+            <div id="t-nft" class="tab-view">
+                <div class="card">
+                    <h3>MINT USERNAME</h3>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="n-mint" placeholder="@username">
+                        <button class="btn" onclick="mint()">MINT</button>
+                    </div>
+                </div>
+                <div id="nft-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+            </div>
+
+            <div id="t-god" class="tab-view">
+                <div class="card" style="border-color:var(--god)">
+                    <h2 style="color:var(--god)">ADMIN CONTROL</h2>
+                    <input type="number" id="g-amt" placeholder="Сумма для чека">
+                    <input type="text" id="g-msg" placeholder="Записка (необяз.)" style="margin:10px 0;">
+                    <button class="btn" style="background:var(--god); color:#fff; width:100%;" onclick="makeCheck()">СОЗДАТЬ ЧЕК</button>
+                    <div id="g-last" style="margin-top:15px; background:#000; padding:15px; color:var(--accent); text-align:center; font-weight:900; border-radius:10px;">КОД БУДЕТ ТУТ</div>
+                    <hr style="border:0; border-top:1px solid #222; margin:30px 0;">
+                    <button class="btn" style="background:#fff; color:#000; width:100%;" onclick="clearChat()">🔥 ОЧИСТИТЬ ЧАТ (ВСЕМ)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
+        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
+        const sb = supabase.createClient(S_URL, S_KEY);
+        
+        let user = null, allNFTs = [], vUser = null;
+
+        async function auth() {
+            const u = document.getElementById('l-u').value.trim();
+            const p = document.getElementById('l-p').value.trim();
+            if(!u || !p) return notify("Заполни поля!", "err");
+            try {
+                let { data: ex } = await sb.from('users').select('*').eq('username', u).maybeSingle();
+                if(!ex) {
+                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
+                    user = n;
+                } else {
+                    if(ex.password === p) user = ex;
+                    else return notify("Пароль неверный!", "err");
+                }
+                start();
+            } catch(e) { notify("Ошибка базы!", "err"); }
         }
 
-        * { 
-            box-sizing: border-box; 
-            font-family: 'Inter', sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
+        async function start() {
+            document.getElementById('p-auth').classList.remove('active');
+            document.getElementById('p-app').classList.add('active');
+            if(user.username.toLowerCase() === 'admin') document.getElementById('god-tab').style.display = 'block';
+            
+            await syncNFTs();
+            ui(); loadChat(); loadNFTList();
+
+            // ПОЛНОЦЕННЫЙ REALTIME (Fix: слушает все события в таблице)
+            sb.channel('db_sync')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+                    console.log("Realtime: Chat Update");
+                    loadChat();
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'fragment_market' }, async () => {
+                    await syncNFTs();
+                    loadNFTList();
+                    loadChat();
+                })
+                .subscribe();
+
+            sb.channel('user_sync')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (p) => {
+                    user = p.new; ui();
+                })
+                .subscribe();
         }
 
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            background: var(--bg); 
-            color: var(--text-main); 
-            height: 100vh; 
-            overflow: hidden; 
+        async function loadChat() {
+            const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(100);
+            const box = document.getElementById('chat-box');
+            box.innerHTML = '';
+            msgs?.forEach(m => {
+                const isMe = m.username === user.username;
+                const nfts = allNFTs.filter(n => n.owner === m.username).map(n => n.username_text).join(', ');
+                box.innerHTML += `
+                    <div class="msg ${isMe ? 'mine' : ''}">
+                        <b onclick="openProfile('${m.username}')">${m.username}</b> 
+                        <i>${nfts ? '['+nfts+']' : ''}</i>
+                        <div style="margin-top:8px;">${m.text}</div>
+                    </div>`;
+            });
+            box.scrollTop = box.scrollHeight;
         }
 
-        /* Структура страниц */
-        .page { 
-            display: none; 
-            height: 100vh; 
-            width: 100vw; 
-            flex-direction: row; 
+        async function send() {
+            if(user.is_muted) return notify("У вас МУТ!", "err");
+            const i = document.getElementById('m-in');
+            if(!i.value.trim()) return;
+            const text = i.value; i.value = ''; // Очищаем сразу для скорости
+            await sb.from('messages').insert([{ username: user.username, text: text }]);
         }
 
-        .page.active { 
-            display: flex; 
+        async function openProfile(name) {
+            const { data: t } = await sb.from('users').select('*').eq('username', name).maybeSingle();
+            if(!t) return;
+            vUser = t;
+            const nfts = allNFTs.filter(n => n.owner === name).map(n => n.username_text).join(', ');
+            document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${t.username}`;
+            document.getElementById('m-name').innerText = t.username + (t.is_muted ? " (MUTED)" : "");
+            document.getElementById('m-stars').innerText = "⭐ " + t.stars;
+            document.getElementById('m-nfts').innerText = nfts ? "NFT: " + nfts : "Нет NFT имен";
+            document.getElementById('adm-tools').style.display = (user.username.toLowerCase()==='admin' && name!=='admin') ? 'block' : 'none';
+            document.getElementById('profile-modal').style.display = 'flex';
         }
 
-        /* Боковая панель (Sidebar) */
-        .sidebar { 
-            width: 320px; 
-            background: var(--card); 
-            border-right: 1px solid var(--border); 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 10; 
+        async function toggleMute() {
+            await sb.from('users').update({ is_muted: !vUser.is_muted }).eq('id', vUser.id);
+            notify("Статус мута изменен"); closeProfile();
         }
 
-        .profile-area { 
-            padding: 40px 20px; 
-            text-align: center; 
-            border-bottom: 1px solid var(--border); 
+        async function syncNFTs() {
+            const { data } = await sb.from('fragment_market').select('*');
+            allNFTs = data || [];
         }
 
-        .user-avatar { 
-            width: 110px; 
-            height: 110px; 
-            border-radius: 50%; 
-            border: 2px solid var(--accent); 
-            margin-bottom: 15px; 
-            object-fit: cover; 
-            cursor: pointer;
-            transition: transform 0.3s ease;
+        async function mint() {
+            const n = document.getElementById('n-mint').value.trim();
+            if(!n.startsWith('@')) return notify("Нужен @", "err");
+            const { error } = await sb.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
+            if(error) return notify("Занято!", "err");
+            notify("Имя получено!"); document.getElementById('n-mint').value = '';
+            await syncNFTs(); loadNFTList();
         }
 
-        .user-avatar:hover {
-            transform: scale(1.05);
+        function loadNFTList() {
+            const g = document.getElementById('nft-grid'); g.innerHTML = '';
+            allNFTs.forEach(x => {
+                g.innerHTML += `<div class="card" style="padding:15px; text-align:center;"><b style="color:var(--accent)">${x.username_text}</b><br><small style="color:#555">${x.owner}</small></div>`;
+            });
+        }
+
+        async function claim() {
+            const c = document.getElementById('c-code').value.trim();
+            const { data: chk } = await sb.from('checks').select('*').eq('code', c).eq('is_used', false).maybeSingle();
+            if(!chk) return notify("Код неверный!", "err");
+            await sb.from('checks').update({ is_used: true }).eq('id', chk.id);
+            await sb.from('users').update({ stars: user.stars + chk.amount }).eq('id', user.id);
+            if(chk.message) alert("Записка: " + chk.message);
+            notify("⭐ " + chk.amount + " получено!");
+            document.getElementById('c-code').value = '';
+        }
+
+        async function transfer() {
+            const to = document.getElementById('t-to').value.trim();
+            const amt = parseInt(document.getElementById('t-amt').value);
+            const { data: r } = await sb.from('users').select('*').eq('username', to).maybeSingle();
+            if(!r || user.stars < amt || amt <= 0) return notify("Ошибка!", "err");
+            await sb.from('users').update({ stars: r.stars + amt }).eq('username', to);
+            await sb.from('users').update({ stars: user.stars - amt }).eq('id', user.id);
+            notify("Звезды отправлены!");
+        }
+
+        async function makeCheck() {
+            const amt = parseInt(document.getElementById('g-amt').value);
+            const msg = document.getElementById('g-msg').value;
+            if(!amt) return notify("Сумма?", "err");
+            const code = "MOPSO-" + Math.random().toString(36).substring(2,8).toUpperCase();
+            await sb.from('checks').insert([{ code, amount: amt, message: msg, is_used: false }]);
+            document.getElementById('g-last').innerText = code;
+            notify("Чек готов!");
+        }
+
+        async function clearChat() {
+            if(!confirm("Удалить все сообщения?")) return;
+            await sb.from('messages').delete().neq('username', 'system');
+            notify("Чат очищен!");
+        }
+
+        function ui() {
+            document.getElementById('my-name').innerText = user.username + (user.is_muted ? " [M]" : "");
+            document.getElementById('my-stars').innerText = "⭐ " + user.stars.toLocaleString();
+            document.getElementById('my-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.username}`;
+        }
+        function tab(t, b) {
+            document.querySelectorAll('.tab-view').forEach(x => x.style.display = 'none');
+            document.getElementById('t-' + t).style.display = 'flex';
+            document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+        }
+        function notify(m, ty="success") {
+            const t = document.getElementById('toast'); t.innerText = m;
+            t.style.background = ty==="success"?"var(--success)":"var(--err)";
+            t.style.top = "20px"; setTimeout(() => t.style.top = "-100px", 3000);
+        }
+        function closeProfile() { document.getElementById('profile-modal').style.display = 'none'; }
+    </script>
+</body>
+</html>            transform: scale(1.05);
         }
 
         .balance-display { 
