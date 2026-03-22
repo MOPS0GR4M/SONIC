@@ -3,155 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM I RED SQUARE TEAM</title>
+    <title>MOPSOGRAM 17.0 | GOD MODE UNLOCKED</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@300&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --p-color: #ff6600; --p-glow: rgba(255, 102, 0, 0.5);
-            --bg: #030303; --card: rgba(15, 15, 15, 0.85);
-            --border: rgba(255, 255, 255, 0.08); --glass: blur(20px);
-            --success: #00ff88; --error: #ff3333;
+            --p: #ff6600; --p-g: rgba(255,102,0,0.3);
+            --bg: #000; --card: rgba(10,10,10,0.95);
+            --brd: rgba(255,255,255,0.08); --glass: blur(25px);
+            --success: #00ff88; --error: #ff3333; --xp: #00ccff;
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; transition: all 0.25s cubic-bezier(0.2, 0, 0.2, 1); }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: #fff; height: 100vh; overflow: hidden; }
+        /* ОСНОВНОЙ СБРОС */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        body, html { height: 100vh; background: var(--bg); color: #fff; overflow: hidden; font-family: 'Inter', sans-serif; }
 
-        /* Живой фон с частицами (CSS-only) */
-        .bg-fx { position: fixed; width: 100vw; height: 100vh; z-index: -1; background: radial-gradient(circle at center, #111 0%, #000 100%); overflow: hidden; }
-        .bg-fx::after { content: ""; position: absolute; width: 200%; height: 200%; background-image: url('https://www.transparenttextures.com/patterns/carbon-fibre.png'); opacity: 0.1; animation: bgMove 60s linear infinite; }
-        @keyframes bgMove { from { transform: translate(0,0); } to { transform: translate(-50%, -50%); } }
+        /* АНИМИРОВАННЫЙ ФОН */
+        .matrix-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; background: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.9)), url('https://www.transparenttextures.com/patterns/stardust.png'); animation: bgZoom 100s linear infinite; }
+        @keyframes bgZoom { from { transform: scale(1); } to { transform: scale(1.5); } }
 
-        /* Плавные переходы страниц */
-        .page { display: none; height: 100vh; width: 100vw; opacity: 0; filter: blur(10px); }
-        .page.active { display: flex; opacity: 1; filter: blur(0); }
+        /* СЕТКА ПРИЛОЖЕНИЯ */
+        .app { display: flex; height: 100vh; width: 100vw; position: relative; }
 
-        /* Sidebar с неоновым свечением */
-        .sidebar { width: 340px; background: var(--card); backdrop-filter: var(--glass); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: relative; }
-        .sidebar::before { content: ""; position: absolute; right: 0; top: 0; height: 100%; width: 2px; background: linear-gradient(to bottom, transparent, var(--p-color), transparent); }
+        /* САЙДБАР (АДАПТИВНЫЙ) */
+        .side { 
+            width: 350px; background: var(--card); backdrop-filter: var(--glass);
+            border-right: 1px solid var(--brd); display: flex; flex-direction: column;
+            position: relative; z-index: 1000;
+        }
 
-        .profile-header { padding: 50px 30px; text-align: center; }
-        .avatar-wrap { position: relative; display: inline-block; margin-bottom: 20px; }
-        .user-av { width: 120px; height: 120px; border-radius: 35%; border: 2px solid var(--p-color); box-shadow: 0 0 30px var(--p-glow); object-fit: cover; transform: rotate(-5deg); }
-        .user-av:hover { transform: rotate(0deg) scale(1.1); }
-        .status-dot { position: absolute; bottom: 10px; right: 10px; width: 18px; height: 18px; background: var(--success); border-radius: 50%; border: 3px solid #000; box-shadow: 0 0 10px var(--success); }
+        /* ПРОФИЛЬ */
+        .prof { padding: 40px 25px; border-bottom: 1px solid var(--brd); text-align: center; }
+        .av-box { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
+        .av-box img { width: 100%; height: 100%; border-radius: 30%; border: 2px solid var(--p); box-shadow: 0 0 30px var(--p-g); object-fit: cover; }
+        .lvl-badge { position: absolute; bottom: -5px; right: -5px; background: var(--p); color: #000; padding: 4px 10px; border-radius: 10px; font-family: 'Orbitron'; font-size: 10px; font-weight: 900; }
 
-        .balance-card { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 20px; border: 1px solid var(--border); margin: 0 30px 30px; text-align: center; }
-        .stars-val { font-family: 'Orbitron'; font-size: 32px; color: var(--p-color); text-shadow: 0 0 15px var(--p-glow); }
+        .xp-bar { width: 100%; height: 6px; background: #111; border-radius: 10px; margin-top: 15px; overflow: hidden; border: 1px solid var(--brd); }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, var(--p), var(--xp)); width: 0%; box-shadow: 0 0 10px var(--p-g); }
 
-        /* Навигация */
-        .menu-item { padding: 18px 40px; cursor: pointer; color: #666; font-size: 13px; font-weight: 800; letter-spacing: 2px; display: flex; align-items: center; gap: 15px; }
-        .menu-item i { font-size: 18px; }
-        .menu-item.active { color: #fff; background: linear-gradient(90deg, rgba(255,102,0,0.15) 0%, transparent 100%); border-left: 4px solid var(--p-color); }
-        .menu-item:hover { color: #fff; padding-left: 50px; }
+        /* НАВИГАЦИЯ */
+        .nav { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .nav-link { 
+            padding: 18px 30px; cursor: pointer; color: #555; display: flex; align-items: center; gap: 15px;
+            font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.03); padding-left: 40px; }
+        .nav-link.active { color: var(--p); border-left: 4px solid var(--p); background: rgba(255,102,0,0.05); }
 
-        /* Чат */
-        .main-content { flex: 1; display: flex; flex-direction: column; position: relative; }
-        #chat-flow { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        /* ГЛАВНЫЙ КОНТЕНТ */
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        .header { height: 70px; border-bottom: 1px solid var(--brd); display: flex; align-items: center; padding: 0 30px; background: rgba(0,0,0,0.5); backdrop-filter: var(--glass); z-index: 100; }
+        .header h2 { font-family: 'Orbitron'; font-size: 16px; letter-spacing: 4px; color: var(--p); }
 
-        /* Стиль сообщений с анимацией */
-        .msg-container { display: flex; flex-direction: column; animation: slideIn 0.4s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; opacity: 0; }
-        @keyframes slideIn { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        /* ЧАТ */
+        .chat-area { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
+        .msg-wrap { display: flex; flex-direction: column; max-width: 80%; animation: msgIn 0.4s cubic-bezier(0.1, 0.9, 0.2, 1.2); }
+        @keyframes msgIn { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
-        .msg-body { padding: 18px 25px; border-radius: 25px; background: var(--card); border: 1px solid var(--border); max-width: 70%; position: relative; backdrop-filter: var(--glass); }
-        .msg-info { font-size: 10px; font-weight: 900; color: #555; margin-bottom: 8px; display: flex; gap: 10px; text-transform: uppercase; }
-        .role-tag { color: var(--p-color); background: rgba(255,102,0,0.1); padding: 2px 8px; border-radius: 5px; }
+        .msg-head { font-size: 10px; font-weight: 900; margin-bottom: 6px; display: flex; gap: 10px; text-transform: uppercase; }
+        .msg-body { padding: 18px 24px; border-radius: 25px; background: var(--card); border: 1px solid var(--brd); position: relative; line-height: 1.5; font-size: 14px; }
+        .msg-wrap.me { align-self: flex-end; }
+        .msg-wrap.me .msg-body { background: linear-gradient(135deg, #221100, #050505); border-color: #552200; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        .msg-container.me { align-items: flex-end; }
-        .msg-container.me .msg-body { background: linear-gradient(135deg, #221100 0%, #050505 100%); border-color: #552200; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-
-        /* Футуристичный ввод */
-        .input-zone { padding: 30px; background: rgba(0,0,0,0.8); border-top: 1px solid var(--border); display: flex; gap: 20px; align-items: center; }
-        .input-box { flex: 1; background: #0a0a0a; border: 1px solid var(--border); border-radius: 20px; padding: 18px 25px; color: #fff; outline: none; font-size: 15px; }
-        .input-box:focus { border-color: var(--p-color); box-shadow: 0 0 20px rgba(255,102,0,0.2); }
-
-        .send-btn { width: 60px; height: 60px; border-radius: 20px; background: var(--p-color); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--p-glow); }
+        /* ВВОД */
+        .input-area { padding: 30px; background: #000; border-top: 1px solid var(--brd); display: flex; gap: 15px; align-items: center; }
+        .inp { flex: 1; background: #0a0a0a; border: 1px solid var(--brd); padding: 18px 25px; border-radius: 20px; color: #fff; outline: none; font-size: 15px; }
+        .inp:focus { border-color: var(--p); box-shadow: 0 0 20px var(--p-g); }
+        .send-btn { width: 60px; height: 60px; border-radius: 20px; background: var(--p); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px var(--p-g); }
         .send-btn:hover { transform: scale(1.1) rotate(5deg); filter: brightness(1.2); }
 
-        /* Табы (Магазин, Банк) */
-        .tab-content { display: none; padding: 50px; flex-direction: column; gap: 30px; overflow-y: auto; height: 100%; }
-        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .action-card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 30px; position: relative; overflow: hidden; }
-        .action-card:hover { border-color: var(--p-color); transform: translateY(-10px); }
+        /* ТАБЫ (СКРЫТЫЕ) */
+        .tab { display: none; height: 100%; overflow-y: auto; padding: 50px; flex-direction: column; gap: 30px; }
+        .tab.active { display: flex; }
 
-        /* Уведомление */
-        #notify { position: fixed; bottom: 30px; right: 30px; background: #fff; color: #000; padding: 20px 40px; border-radius: 20px; font-weight: 900; z-index: 10000; transform: translateY(200px); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+        @media (max-width: 900px) {
+            .side { position: fixed; left: -100%; width: 300px; height: 100%; box-shadow: 20px 0 50px #000; }
+            .side.open { left: 0; }
+            .menu-btn { display: flex !important; }
+            .main { width: 100vw; }
+            .tab { padding: 30px 15px; }
+        }
+        .menu-btn { display: none; position: fixed; top: 15px; right: 15px; z-index: 2000; width: 50px; height: 50px; background: var(--p); border-radius: 15px; align-items: center; justify-content: center; color: #000; font-weight: 900; border: none; }
 
-        /* Скроллбар */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--p-color); }
+        /* КАРТОЧКИ МАГАЗИНА */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .item-card { background: var(--card); border: 1px solid var(--brd); border-radius: 25px; padding: 25px; text-align: center; }
+        .item-card:hover { border-color: var(--p); transform: translateY(-10px); }
+
+        /* УВЕДОМЛЕНИЯ */
+        #notify { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 15px 40px; border-radius: 50px; background: #fff; color: #000; font-weight: 900; z-index: 5000; transition: 0.6s; box-shadow: 0 10px 40px #000; }
+
+        /* СКРОЛЛ */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--p); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="bg-fx"></div>
-<div id="notify">SYSTEM UPDATED</div>
+<div class="matrix-bg"></div>
+<div id="notify">SYSTEM_ONLINE</div>
 
-<div id="p-login" class="page active" style="align-items:center; justify-content:center;">
-    <div class="action-card" style="width: 420px; text-align: center; border-width: 2px;">
-        <div style="font-family: 'Orbitron'; font-size: 28px; letter-spacing: 10px; color: var(--p-color); margin-bottom: 10px;">MOPSOGRAM</div>
-        <div style="font-size: 10px; letter-spacing: 5px; color: #444; margin-bottom: 40px;">SUPREME BLACK EDITION</div>
-        <input type="text" id="in-u" class="input-box" placeholder="ACCESS KEY (LOGIN)" style="margin-bottom:15px; width: 100%;">
-        <input type="password" id="in-p" class="input-box" placeholder="PASSWORD" style="margin-bottom:30px; width: 100%;">
-        <button class="send-btn" style="width: 100%; border-radius: 15px;" onclick="handleAuth()">LOGIN TO SYSTEM</button>
+<button class="menu-btn" onclick="toggleMenu()">MENU</button>
+
+<div id="p-login" style="position:fixed; inset:0; z-index:9999; background:#000; display:flex; align-items:center; justify-content:center;">
+    <div style="width:350px; text-align:center;">
+        <h1 style="font-family:'Orbitron'; color:var(--p); letter-spacing:8px; margin-bottom:40px;">MOPSOGRAM</h1>
+        <input type="text" id="log-u" class="inp" placeholder="KEY_ID" style="width:100%; margin-bottom:15px;">
+        <input type="password" id="log-p" class="inp" placeholder="PASSWORD" style="width:100%; margin-bottom:30px;">
+        <button class="send-btn" style="width:100%; border-radius:15px;" onclick="auth()">DECRYPT ACCESS</button>
     </div>
 </div>
 
-<div id="p-app" class="page">
-    <div class="sidebar">
-        <div class="profile-header">
-            <div class="avatar-wrap">
-                <img id="my-av" class="user-av" src="">
-                <div class="status-dot"></div>
+<div class="app">
+    <div class="side" id="sidebar">
+        <div class="prof">
+            <div class="av-box">
+                <img id="my-av" src="">
+                <div class="lvl-badge" id="my-lvl">LVL 1</div>
             </div>
-            <div id="my-name" style="font-family: 'Orbitron'; font-size: 18px; letter-spacing: 2px;">USER</div>
+            <h3 id="my-name" style="font-family:'Orbitron'; color:var(--p); margin-bottom:5px;">USER</h3>
+            <div id="my-stars" style="font-size:20px; font-weight:900; color:#fff;">⭐ 0</div>
+            <div class="xp-bar"><div id="xp-fill" class="xp-fill"></div></div>
         </div>
 
-        <div class="balance-card">
-            <div style="font-size: 10px; color: #555; margin-bottom: 5px; font-weight: 900;">CRYPTO BALANCE</div>
-            <div class="stars-val" id="my-stars">0</div>
+        <div class="nav">
+            <div class="nav-link active" onclick="tab('chat', this)">💬 Neural Net</div>
+            <div class="nav-link" onclick="tab('bank', this)">🏦 Global Bank</div>
+            <div class="nav-link" onclick="tab('market', this)">💎 NFT Market</div>
+            <div id="adm-nav" class="nav-link" style="display:none; color:var(--error);" onclick="tab('admin', this)">⚡ ADMIN CMD</div>
         </div>
 
-        <div class="menu-item active" onclick="switchTab('chat', this)"><i>💬</i> NEURAL CHAT</div>
-        <div class="menu-item" onclick="switchTab('bank', this)"><i>🏦</i> TERMINAL BANK</div>
-        <div class="menu-item" onclick="switchTab('market', this)"><i>💎</i> NFT MARKET</div>
-        
-        <div style="margin-top:auto; padding:30px;">
-            <button class="send-btn" style="width: 100%; background: #111; color: #fff; font-size: 10px;" onclick="location.reload()">TERMINATE SESSION</button>
+        <div style="padding:25px; margin-top:auto;">
+            <button class="send-btn" style="width:100%; height:45px; background:#111; color:#fff; font-size:10px;" onclick="location.reload()">TERMINATE_SESSION</button>
         </div>
     </div>
 
-    <div class="main-content">
-        <div id="tab-chat" class="tab-content" style="display: flex; padding: 0;">
-            <div id="chat-flow"></div>
-            <div class="input-zone">
-                <input type="text" id="chat-in" class="input-box" placeholder="Write a message..." onkeypress="if(event.key==='Enter') sendMsg()">
-                <button class="send-btn" onclick="sendMsg()">➔</button>
+    <div class="main">
+        <div class="header">
+            <h2 id="view-title">NEURAL_NET</h2>
+        </div>
+
+        <div id="t-chat" class="tab active" style="padding:0; display:flex;">
+            <div class="chat-area" id="chat-flow"></div>
+            <div class="input-area">
+                <input type="text" id="m-in" class="inp" placeholder="Enter encrypted data..." onkeypress="if(event.key==='Enter') send()">
+                <button class="send-btn" onclick="send()">➔</button>
             </div>
         </div>
 
-        <div id="tab-bank" class="tab-content">
-            <h1 style="font-family: 'Orbitron'; color: var(--p-color);">BANKING TERMINAL</h1>
-            <div class="grid-cards">
-                <div class="action-card">
-                    <h3>REDEEM VOUCHER</h3>
-                    <input type="text" id="chk-code" class="input-box" placeholder="CODE-XXXX-XXXX">
-                    <button class="send-btn" style="width:100%; margin-top:15px; border-radius: 10px;" onclick="redeemCheck()">REDEEM</button>
+        <div id="t-bank" class="tab">
+            <h1 style="font-family:'Orbitron'; color:var(--p);">BANK_TERMINAL</h1>
+            <div class="card-grid">
+                <div class="item-card">
+                    <h4>TRANSFER PROTOCOL</h4>
+                    <input type="text" id="tr-to" class="inp" placeholder="Recipient" style="margin:15px 0 10px;">
+                    <input type="number" id="tr-amt" class="inp" placeholder="Amount">
+                    <button class="send-btn" style="width:100%; margin-top:20px; border-radius:10px;" onclick="transfer()">EXECUTE</button>
                 </div>
-                <div class="action-card">
-                    <h3>TRANSFER STARS</h3>
-                    <input type="text" id="tr-to" class="input-box" placeholder="Recipient Name">
-                    <input type="number" id="tr-amt" class="input-box" placeholder="Amount" style="margin-top:10px;">
-                    <button class="send-btn" style="width:100%; margin-top:15px; border-radius: 10px;" onclick="transferStars()">SEND CRYPTO</button>
+                <div class="item-card">
+                    <h4>VOUCHER SYSTEM</h4>
+                    <input type="text" id="chk-in" class="inp" placeholder="MOPSO-XXXX" style="margin:15px 0;">
+                    <button class="send-btn" style="width:100%; border-radius:10px;" onclick="claim()">REDEEM</button>
                 </div>
             </div>
         </div>
 
-        <div id="tab-market" class="tab-content">
-            <h1 style="font-family: 'Orbitron'; color: var(--p-color);">NFT MARKET</h1>
-            <div id="nft-container" class="grid-cards">
-                </div>
+        <div id="t-market" class="tab">
+            <h1 style="font-family:'Orbitron'; color:var(--p);">UPGRADES</h1>
+            <div class="card-grid" id="market-list"></div>
+        </div>
+
+        <div id="t-admin" class="tab">
+            <h1 style="font-family:'Orbitron'; color:var(--error);">GOD_COMMANDS</h1>
+            <div class="item-card" style="border-color:var(--error);">
+                <h3>GENERATE VOUCHER</h3>
+                <input type="number" id="g-amt" class="inp" placeholder="Stars Amount" style="margin:15px 0;">
+                <button class="send-btn" style="width:100%; background:var(--error); color:#fff;" onclick="makeCheck()">CREATE CODE</button>
+                <div id="g-res" style="margin-top:20px; font-family:'JetBrains Mono'; color:var(--p);">RESULT_NULL</div>
+                <hr style="margin:20px 0; border:0; border-top:1px solid var(--brd);">
+                <button class="send-btn" style="width:100%; background:#fff; color:#000;" onclick="clearAll()">🔥 WIPE ALL MESSAGES</button>
+            </div>
         </div>
     </div>
 </div>
@@ -162,49 +194,54 @@
     const sb = supabase.createClient(S_URL, S_KEY);
 
     let user = null;
+    let usersList = [];
 
-    async function handleAuth() {
-        const u = document.getElementById('in-u').value.trim();
-        const p = document.getElementById('in-p').value.trim();
-        if(!u || !p) return showNotify("FIELDS REQUIRED", "var(--error)");
+    // АВТОРИЗАЦИЯ
+    async function auth() {
+        const u = document.getElementById('log-u').value.trim();
+        const p = document.getElementById('log-p').value.trim();
+        if(!u || !p) return notify("DATA REQUIRED", "var(--error)");
 
         let { data: ex } = await sb.from('users').select('*').eq('username', u).maybeSingle();
         if(!ex) {
-            const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 5000 }]).select().single();
+            const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 1000, xp: 0 }]).select().single();
             user = n;
         } else {
             if(ex.password === p) user = ex;
-            else return showNotify("INVALID PASSWORD", "var(--error)");
+            else return notify("WRONG PASSWORD", "var(--error)");
         }
-        enterApp();
+        start();
     }
 
-    function enterApp() {
-        document.getElementById('p-login').classList.remove('active');
-        document.getElementById('p-app').classList.add('active');
-        updateUI();
-        syncChat();
+    async function start() {
+        document.getElementById('p-login').style.display = 'none';
+        if(user.username.toLowerCase() === 'admin') document.getElementById('adm-nav').style.display = 'flex';
         
-        // REALTIME SUBSCRIPTION
-        sb.channel('realtime_core').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
-            syncChat();
-        })
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (p) => {
-            user = p.new; updateUI();
+        updateUI();
+        loadChat();
+
+        // REALTIME 2.0
+        sb.channel('db').on('postgres_changes', { event: '*', schema: 'public' }, async (pl) => {
+            if(pl.table === 'messages') loadChat();
+            if(pl.table === 'users' && pl.new.id === user.id) { user = pl.new; updateUI(); }
         }).subscribe();
+
+        notify("WELCOME, " + user.username.toUpperCase());
     }
 
-    async function syncChat() {
+    // ЧАТ
+    async function loadChat() {
         const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true });
         const box = document.getElementById('chat-flow');
         box.innerHTML = '';
         msgs?.forEach(m => {
             const isMe = m.username === user.username;
+            const lvl = Math.floor(Math.sqrt(m.xp || 0) / 10) + 1;
             box.innerHTML += `
-                <div class="msg-container ${isMe ? 'me' : ''}">
-                    <div class="msg-info">
+                <div class="msg-wrap ${isMe ? 'me' : ''}">
+                    <div class="msg-head">
                         <span>${m.username}</span>
-                        ${isMe ? '<span class="role-tag">YOU</span>' : ''}
+                        <span style="color:var(--xp)">[LVL ${lvl}]</span>
                     </div>
                     <div class="msg-body">${m.text}</div>
                 </div>`;
@@ -212,54 +249,86 @@
         box.scrollTop = box.scrollHeight;
     }
 
-    async function sendMsg() {
-        const i = document.getElementById('chat-in');
+    async function send() {
+        const i = document.getElementById('m-in');
         if(!i.value.trim()) return;
         const txt = i.value; i.value = '';
-        await sb.from('messages').insert([{ username: user.username, text: txt }]);
+        
+        // Добавляем XP за сообщение
+        await sb.from('users').update({ xp: (user.xp || 0) + 10 }).eq('id', user.id);
+        await sb.from('messages').insert([{ username: user.username, text: txt, xp: user.xp }]);
     }
 
-    async function transferStars() {
+    // БАНК
+    async function transfer() {
         const to = document.getElementById('tr-to').value.trim();
         const amt = parseInt(document.getElementById('tr-amt').value);
-        if(!to || amt <= 0 || user.stars < amt) return showNotify("INVALID TRANSFER", "var(--error)");
+        if(!to || amt <= 0 || user.stars < amt) return notify("INVALID TRANS", "var(--error)");
 
         const { data: target } = await sb.from('users').select('*').eq('username', to).maybeSingle();
-        if(!target) return showNotify("USER NOT FOUND", "var(--error)");
+        if(!target) return notify("USER NOT FOUND", "var(--error)");
 
         await sb.from('users').update({ stars: target.stars + amt }).eq('id', target.id);
         await sb.from('users').update({ stars: user.stars - amt }).eq('id', user.id);
-        showNotify("TRANSFER SUCCESSFUL");
+        notify("STARS TRANSFERRED");
     }
 
-    async function redeemCheck() {
-        const code = document.getElementById('chk-code').value.trim();
+    async function claim() {
+        const code = document.getElementById('chk-in').value.trim();
         const { data: c } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-        if(!c) return showNotify("INVALID CODE", "var(--error)");
+        if(!c) return notify("INVALID CODE", "var(--error)");
 
         await sb.from('checks').update({ is_used: true }).eq('id', c.id);
         await sb.from('users').update({ stars: user.stars + c.amount }).eq('id', user.id);
-        showNotify(`RECEIVED ⭐ ${c.amount}`);
+        notify("RECEIVED ⭐ " + c.amount);
     }
 
+    // АДМИН
+    async function makeCheck() {
+        const amt = parseInt(document.getElementById('g-amt').value);
+        const code = "MOPSO-" + Math.random().toString(36).substring(2,9).toUpperCase();
+        await sb.from('checks').insert([{ code, amount: amt, is_used: false }]);
+        document.getElementById('g-res').innerText = code;
+        notify("VOUCHER CREATED");
+    }
+
+    async function clearAll() {
+        if(!confirm("WIPE EVERYTHING?")) return;
+        await sb.from('messages').delete().neq('username', '_____');
+        notify("PURGED");
+    }
+
+    // ИНТЕРФЕЙС
     function updateUI() {
+        const lvl = Math.floor(Math.sqrt(user.xp || 0) / 10) + 1;
+        const xpNeeded = Math.pow(lvl * 10, 2);
+        const progress = ((user.xp || 0) / xpNeeded) * 100;
+
         document.getElementById('my-name').innerText = user.username.toUpperCase();
-        document.getElementById('my-stars').innerText = user.stars.toLocaleString();
-        document.getElementById('my-av').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`;
+        document.getElementById('my-stars').innerText = "⭐ " + (user.stars || 0).toLocaleString();
+        document.getElementById('my-lvl').innerText = "LVL " + lvl;
+        document.getElementById('xp-fill').style.width = progress + "%";
+        document.getElementById('my-av').src = `https://api.dicebear.com/7.x/pixel-art/svg?seed=${user.username}`;
     }
 
-    function switchTab(id, el) {
-        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        document.getElementById('tab-' + id).style.display = id === 'chat' ? 'flex' : 'block';
+    function tab(id, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+        document.getElementById('t-' + id).classList.add('active');
         el.classList.add('active');
+        document.getElementById('view-title').innerText = id.toUpperCase() + "_TERMINAL";
+        if(window.innerWidth < 900) toggleMenu();
     }
 
-    function showNotify(m, color = "var(--p-color)") {
+    function toggleMenu() {
+        document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function notify(m, color = "#fff") {
         const n = document.getElementById('notify');
         n.innerText = m; n.style.background = color;
-        n.style.transform = "translateY(0)";
-        setTimeout(() => n.style.transform = "translateY(200px)", 3000);
+        n.style.top = "20px";
+        setTimeout(() => n.style.top = "-100px", 3000);
     }
 </script>
 </body>
