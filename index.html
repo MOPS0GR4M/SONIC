@@ -124,24 +124,35 @@
     <script>
         const SB_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
-        const client = supabase.createClient(SB_URL, SB_KEY);
+        
+        let client;
+        try {
+            client = supabase.createClient(SB_URL, SB_KEY);
+        } catch(e) { alert("Ошибка подключения: " + e.message); }
         
         let user = null;
 
         async function auth() {
             const u = document.getElementById('u-login').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u) return;
+            if(!u || !p) return alert("Заполни поля!");
 
-            let { data, error } = await client.from('users').select('*').eq('username', u).maybeSingle();
-            if(!data) {
-                const { data: n } = await client.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
-                user = n;
-            } else {
-                if(data.password === p) user = data;
-                else return notify("Неверный пароль!", "err");
-            }
-            start();
+            try {
+                let { data, error } = await client.from('users').select('*').eq('username', u).maybeSingle();
+                
+                if(error) return alert("DB Error: " + error.message);
+
+                if(!data) {
+                    const { data: n, error: e2 } = await client.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
+                    if(e2) return alert("Reg Error: " + e2.message);
+                    user = n;
+                } else {
+                    if(data.password === p) user = data;
+                    else return alert("Неверный пароль!");
+                }
+                
+                if(user) start();
+            } catch(e) { alert("Auth Catch: " + e.message); }
         }
 
         function start() {
@@ -184,16 +195,13 @@
             const val = i.value.trim();
             if(!val) return;
 
-            // АДМИН КОМАНДА
             if(user.username.toLowerCase() === 'admin' && val.startsWith('!check')) {
                 const p = val.split(' ');
                 const amt = parseInt(p[1]) || 5000;
                 const uses = parseInt(p[2]) || 1;
                 const code = "GIFT-" + Math.random().toString(36).substring(2,8).toUpperCase();
-                
                 const { error } = await client.from('checks').insert([{ code: code, amount: amt, uses_left: uses }]);
                 if(error) return alert("Ошибка чека: " + error.message);
-
                 await client.from('messages').insert([{ username: '🤖 MOPSO-BOT', text: `🎁 <b>АДМИН-ДРОП!</b><br>Код: <b style="color:#fff">${code}</b><br>Сумма: ⭐ ${amt}<br>Мест: ${uses}` }]);
                 i.value = ''; return;
             }
@@ -207,9 +215,9 @@
         async function transfer() {
             const to = document.getElementById('gift-to').value.trim();
             const amt = parseInt(document.getElementById('gift-amt').value);
-            if(user.stars < amt) return notify("Мало звезд!", "err");
+            if(user.stars < amt) return alert("Мало звезд!");
             const { data: rec } = await client.from('users').select('*').eq('username', to).maybeSingle();
-            if(!rec) return notify("Нет юзера!", "err");
+            if(!rec) return alert("Юзер не найден!");
             await client.from('users').update({ stars: user.stars - amt }).eq('username', user.username);
             await client.from('users').update({ stars: rec.stars + amt }).eq('username', to);
             notify("Отправлено!");
@@ -218,19 +226,18 @@
         async function redeem() {
             const c = document.getElementById('check-code').value.trim();
             const { data } = await client.from('checks').select('*').eq('code', c).maybeSingle();
-            if(!data || data.uses_left <= 0) return notify("Код пуст!", "err");
-            
+            if(!data || data.uses_left <= 0) return alert("Код невалиден!");
             const { data: me } = await client.from('users').select('stars').eq('username', user.username).single();
             await client.from('users').update({ stars: me.stars + data.amount }).eq('username', user.username);
             await client.from('checks').update({ uses_left: data.uses_left - 1 }).eq('code', c);
-            notify("Звезды зачислены!");
+            notify("Готово!");
         }
 
         async function mint() {
             const n = document.getElementById('new-nick').value.trim();
-            if(!n.startsWith('@')) return notify("Имя с @!", "err");
+            if(!n.startsWith('@')) return alert("Ник должен быть с @");
             const { error } = await client.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
-            if(error) return notify("Занято!", "err");
+            if(error) return alert("Занято!");
             notify("Куплено!"); loadNicks();
         }
 
@@ -241,7 +248,7 @@
         }
 
         async function showProfile(name) {
-            const { data: u } = await client.from('users').select('*').eq('username', name).single();
+            const { data: u } = await client.from('users').select('*').eq('username', name).maybeSingle();
             if(!u) return;
             document.getElementById('p-user').innerText = u.username;
             document.getElementById('p-stars').innerText = `⭐ ${u.stars.toLocaleString()}`;
