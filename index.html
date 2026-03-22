@@ -14,11 +14,11 @@
         * { box-sizing: border-box; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-family: 'Segoe UI', sans-serif; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* АНИМАЦИЯ ПОЯВЛЕНИЯ СТРАНИЦ */
-        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; opacity: 0; transform: scale(1.1); }
+        /* ANIMATIONS */
+        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; opacity: 0; transform: scale(1.05); }
         .active { display: flex; opacity: 1; transform: scale(1); }
 
-        /* AUTH SCREEN */
+        /* AUTH */
         .auth-screen { width: 100%; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a0f00, #000); }
         .auth-card { background: var(--card); border: 1px solid var(--border); padding: 50px; border-radius: 40px; width: 360px; text-align: center; box-shadow: 0 0 30px rgba(255,102,0,0.1); }
         .auth-card h1 { font-size: 28px; letter-spacing: 10px; color: var(--accent); margin-bottom: 30px; font-weight: 900; text-shadow: 0 0 15px rgba(255,102,0,0.5); }
@@ -29,16 +29,16 @@
         .user-avatar { width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 12px; object-fit: cover; }
         .star-balance { font-size: 26px; font-weight: 900; color: var(--accent); margin-top: 8px; }
 
-        .nav-btn { padding: 18px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-left: 0 solid var(--accent); }
+        .nav-btn { padding: 18px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-left: 0px solid var(--accent); }
         .nav-btn:hover { color: var(--text); background: rgba(255,102,0,0.05); padding-left: 35px; }
         .nav-btn.active-tab { color: var(--accent); background: rgba(255,102,0,0.07); border-left: 4px solid var(--accent); }
 
-        /* CHAT */
+        /* MAIN CONTENT */
         .main-content { flex: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
         #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
         
         .msg { max-width: 85%; padding: 14px 18px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); position: relative; animation: msgSlide 0.4s ease-out; }
-        @keyframes msgSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes msgSlide { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
         .msg-out { align-self: flex-end; border-color: #301b00; background: #150d00; }
         .msg-bot { align-self: center; border-color: var(--bot); color: var(--bot); text-align: center; width: 90%; background: rgba(0, 229, 255, 0.05); border-style: dashed; }
@@ -53,23 +53,21 @@
         input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(255,102,0,0.2); }
         .btn { padding: 14px 24px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; font-size: 11px; text-transform: uppercase; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,102,0,0.3); }
-        .btn:active { transform: translateY(0); }
 
-        /* OVERLAY */
+        /* MODAL & TOAST */
         #p-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; justify-content:center; align-items:center; z-index:1000; backdrop-filter: blur(5px); }
         .p-card { background:var(--card); border:1px solid var(--accent); padding:40px; border-radius:40px; text-align:center; min-width:300px; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 50px; background: var(--accent); color: #000; font-weight: bold; z-index: 9999; transition: 0.5s; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 15px 30px; border-radius: 50px; background: var(--accent); color: #000; font-weight: bold; z-index: 9999; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
-    <div id="toast">SYSTEM READY</div>
+    <div id="toast">SYSTEM ONLINE</div>
 
     <div id="p-overlay" onclick="this.style.display='none'">
         <div class="p-card" onclick="event.stopPropagation()">
-            <img id="p-img" class="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+            <img class="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
             <h2 id="p-user" style="color:var(--accent); margin: 10px 0;"></h2>
             <div id="p-stars" style="font-size:24px; font-weight:900;"></div>
             <div id="p-nicks" style="margin-top:15px; font-size:12px; color:var(--text-dim); border-top: 1px solid var(--border); padding-top: 10px;"></div>
@@ -89,7 +87,7 @@
         <div class="sidebar">
             <div class="profile-area">
                 <img class="user-avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png">
-                <div id="display-u" style="font-weight:800; font-size:18px; letter-spacing: 1px;">USER</div>
+                <div id="display-u" style="font-weight:800; font-size:18px;">USER</div>
                 <div id="display-s" class="star-balance">⭐ 0</div>
             </div>
             <div class="nav-btn active-tab" onclick="tab('chat', this)">💬 ЧАТ</div>
@@ -100,32 +98,32 @@
         <div id="tab-chat" class="main-content">
             <div id="chat-box"></div>
             <div class="input-bar">
-                <input type="text" id="m-input" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter') send()">
+                <input type="text" id="m-input" placeholder="Сообщение или !check сумма кол-во" onkeypress="if(event.key==='Enter') send()">
                 <button class="btn" onclick="send()">SEND</button>
             </div>
         </div>
 
         <div id="tab-bank" class="main-content" style="display:none; padding:30px;">
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border);">
-                <h3 style="margin-top:0; color:var(--accent);">ПЕРЕВОД</h3>
+            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border); margin-bottom:20px;">
+                <h3 style="color:var(--accent); margin-top:0;">ПЕРЕВОД ЗВЕЗД</h3>
                 <input type="text" id="gift-to" placeholder="Логин получателя" style="margin-bottom:10px;">
                 <input type="number" id="gift-amt" placeholder="Сумма ⭐">
                 <button class="btn" style="width:100%; margin-top:15px;" onclick="transfer()">ОТПРАВИТЬ</button>
             </div>
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border); margin-top: 20px;">
+            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border);">
                 <h3 style="margin-top:0;">АКТИВАЦИЯ ЧЕКА</h3>
-                <input type="text" id="check-code" placeholder="Введите код чека">
-                <button class="btn" style="width:100%; background:#fff; color:#000; margin-top:15px;" onclick="redeem()">ЗАБРАТЬ ЗВЕЗДЫ</button>
+                <input type="text" id="check-code" placeholder="GIFT-XXXXXX">
+                <button class="btn" style="width:100%; background:#fff; color:#000; margin-top:15px;" onclick="redeem()">ПОЛУЧИТЬ</button>
             </div>
         </div>
 
         <div id="tab-frag" class="main-content" style="display:none; padding:30px;">
-            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border);">
-                <h3 style="margin-top:0; color:var(--accent);">MINT NFT NAME</h3>
+            <div style="background:var(--card); padding:25px; border-radius:25px; border:1px solid var(--border); margin-bottom:20px;">
+                <h3 style="color:var(--accent); margin-top:0;">MINT NFT NAME</h3>
                 <input type="text" id="new-nick" placeholder="@username">
-                <button class="btn" style="width:100%; margin-top:15px;" onclick="mint()">КУПИТЬ ИМЯ</button>
+                <button class="btn" style="width:100%; margin-top:15px;" onclick="mint()">КУПИТЬ (5000 ⭐)</button>
             </div>
-            <div id="nick-list" style="margin-top:20px; overflow-y: auto;"></div>
+            <div id="nick-list" style="overflow-y:auto;"></div>
         </div>
     </div>
 
@@ -133,57 +131,42 @@
         const SB_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
         const client = supabase.createClient(SB_URL, SB_KEY);
-        
         let user = null;
 
         async function auth() {
             const u = document.getElementById('u-login').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return notify("Заполни все поля!", "err");
+            if(!u || !p) return notify("Заполни поля!", "err");
 
             try {
-                // 1. Пытаемся просто получить юзера
-                let { data: existingUser, error: fetchError } = await client.from('users').select('*').eq('username', u).maybeSingle();
-                
-                if (fetchError) throw fetchError;
+                let { data: ex, error: err } = await client.from('users').select('*').eq('username', u).maybeSingle();
+                if(err) throw err;
 
-                if(!existingUser) {
-                    // 2. Если нет - создаем (Регистрация)
-                    const { data: newUser, error: regError } = await client.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
-                    if (regError) throw regError;
-                    user = newUser;
-                    notify("Аккаунт создан!");
+                if(!ex) {
+                    const { data: n, error: rE } = await client.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
+                    if(rE) throw rE;
+                    user = n;
                 } else {
-                    // 3. Если есть - проверяем пароль
-                    if(existingUser.password === p) {
-                        user = existingUser;
-                        notify("Вход выполнен!");
-                    } else {
-                        return notify("Неверный пароль!", "err");
-                    }
+                    if(ex.password === p) { user = ex; } 
+                    else { return notify("Неверный пароль!", "err"); }
                 }
-                
                 if(user) start();
-            } catch (err) {
-                console.error(err);
-                notify("Ошибка: " + err.message, "err");
-            }
+            } catch(e) { alert("Ошибка входа: " + e.message); }
         }
 
         function start() {
-            const authPage = document.getElementById('auth-page');
-            const mainPage = document.getElementById('main-page');
-            
-            authPage.style.opacity = '0';
+            const aP = document.getElementById('auth-page');
+            const mP = document.getElementById('main-page');
+            aP.style.opacity = '0';
             setTimeout(() => {
-                authPage.classList.remove('active');
-                mainPage.classList.add('active');
-                setTimeout(() => mainPage.style.opacity = '1', 50);
+                aP.classList.remove('active');
+                mP.classList.add('active');
+                setTimeout(() => mP.style.opacity = '1', 50);
                 updateUI(); loadMsgs(); loadNicks();
             }, 300);
 
-            client.channel('chat').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs()).subscribe();
-            client.channel('users').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `username=eq.${user.username}` }, (pl) => {
+            client.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMsgs()).subscribe();
+            client.channel('u').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `username=eq.${user.username}` }, (pl) => {
                 user = pl.new; updateUI();
             }).subscribe();
         }
@@ -191,122 +174,96 @@
         function updateUI() {
             if(!user) return;
             document.getElementById('display-u').innerText = user.username;
-            document.getElementById('display-s').innerText = `⭐ ${user.stars.toLocaleString()}`;
+            document.getElementById('display-s').innerText = `⭐ ${(user.stars || 0).toLocaleString()}`;
         }
 
         async function loadMsgs() {
-            if(!user) return;
             const { data } = await client.from('messages').select('*').order('created_at', { ascending: true });
-            const b = document.getElementById('chat-box'); 
-            b.innerHTML = '';
+            const b = document.getElementById('chat-box'); b.innerHTML = '';
             const isAdmin = user.username.toLowerCase() === 'admin';
-
             data?.forEach(m => {
                 const isMe = m.username === user.username;
                 const isBot = m.username.includes('BOT');
-                b.innerHTML += `
-                    <div class="msg ${isMe ? 'msg-out' : ''} ${isBot ? 'msg-bot' : ''}">
-                        <div class="msg-top">
-                            <b onclick="showProfile('${m.username}')">${m.username}</b>
-                            ${isAdmin && !isBot ? `<span class="del-btn" onclick="deleteMsg(${m.id})">×</span>` : ''}
-                        </div>
-                        <div>${m.text}</div>
-                    </div>`;
+                b.innerHTML += `<div class="msg ${isMe ? 'msg-out' : ''} ${isBot ? 'msg-bot' : ''}">
+                    <div class="msg-top"><b onclick="showProfile('${m.username}')">${m.username}</b>
+                    ${isAdmin && !isBot ? `<span class="del-btn" onclick="deleteMsg(${m.id})">×</span>` : ''}</div>
+                    <div>${m.text}</div></div>`;
             });
             b.scrollTop = b.scrollHeight;
         }
 
         async function send() {
             const i = document.getElementById('m-input');
-            const val = i.value.trim();
-            if(!val || !user) return;
-
-            if(user.username.toLowerCase() === 'admin' && val.startsWith('!check')) {
-                const p = val.split(' ');
-                const amt = parseInt(p[1]) || 5000;
-                const uses = parseInt(p[2]) || 1;
+            const v = i.value.trim(); if(!v) return;
+            if(user.username.toLowerCase() === 'admin' && v.startsWith('!check')) {
+                const p = v.split(' '); const amt = parseInt(p[1]) || 1000; const us = parseInt(p[2]) || 1;
                 const code = "GIFT-" + Math.random().toString(36).substring(2,8).toUpperCase();
-                await client.from('checks').insert([{ code: code, amount: amt, uses_left: uses }]);
-                await client.from('messages').insert([{ username: '🤖 MOPSO-BOT', text: `🎁 <b>АДМИН-ДРОП!</b><br>Код: <b style="color:#fff">${code}</b><br>Сумма: ⭐ ${amt}<br>Мест: ${uses}` }]);
-                i.value = ''; return;
+                await client.from('checks').insert([{ code: code, amount: amt, uses_left: us }]);
+                await client.from('messages').insert([{ username: '🤖 MOPSO-BOT', text: `🎁 <b>ДРОП!</b><br>Код: <b>${code}</b><br>Сумма: ⭐ ${amt} | Мест: ${us}` }]);
+            } else {
+                await client.from('messages').insert([{ username: user.username, text: v }]);
             }
-
-            await client.from('messages').insert([{ username: user.username, text: val }]);
             i.value = '';
         }
-
-        async function deleteMsg(id) { await client.from('messages').delete().eq('id', id); }
 
         async function transfer() {
             const to = document.getElementById('gift-to').value.trim();
             const amt = parseInt(document.getElementById('gift-amt').value);
-            if(!amt || amt <= 0) return notify("Укажи сумму!", "err");
-            if(user.stars < amt) return notify("Недостаточно звезд!", "err");
-            
-            const { data: rec } = await client.from('users').select('*').eq('username', to).maybeSingle();
-            if(!rec) return notify("Получатель не найден!", "err");
-            
+            if(user.stars < amt) return notify("Мало звезд!", "err");
+            const { data: r } = await client.from('users').select('*').eq('username', to).maybeSingle();
+            if(!r) return notify("Нет такого юзера!", "err");
             await client.from('users').update({ stars: user.stars - amt }).eq('username', user.username);
-            await client.from('users').update({ stars: rec.stars + amt }).eq('username', to);
-            notify("⭐ Переведено!");
+            await client.from('users').update({ stars: r.stars + amt }).eq('username', to);
+            notify("⭐ Отправлено!");
         }
 
         async function redeem() {
             const c = document.getElementById('check-code').value.trim();
-            const { data } = await client.from('checks').select('*').eq('code', c).maybeSingle();
-            if(!data || data.uses_left <= 0) return notify("Чек недействителен!", "err");
-            
-            await client.from('users').update({ stars: user.stars + data.amount }).eq('username', user.username);
-            await client.from('checks').update({ uses_left: data.uses_left - 1 }).eq('code', c);
-            notify("⭐ Звезды получены!");
+            const { data: ch } = await client.from('checks').select('*').eq('code', c).maybeSingle();
+            if(!ch || ch.uses_left <= 0) return notify("Код не работает!", "err");
+            await client.from('users').update({ stars: user.stars + ch.amount }).eq('username', user.username);
+            await client.from('checks').update({ uses_left: ch.uses_left - 1 }).eq('code', c);
+            notify("⭐ Получено!");
         }
 
         async function mint() {
             const n = document.getElementById('new-nick').value.trim();
-            if(!n.startsWith('@')) return notify("Нужен @ в начале!", "err");
+            if(!n.startsWith('@') || user.stars < 5000) return notify("Надо @ и 5000 ⭐", "err");
             const { error } = await client.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
-            if(error) return notify("Уже занято!", "err");
-            notify("Имя куплено!"); loadNicks();
+            if(error) return notify("Занято!", "err");
+            await client.from('users').update({ stars: user.stars - 5000 }).eq('username', user.username);
+            notify("Куплено!"); loadNicks();
         }
 
         async function loadNicks() {
             const { data } = await client.from('fragment_market').select('*');
             const l = document.getElementById('nick-list'); l.innerHTML = '';
-            data?.forEach(n => l.innerHTML += `
-                <div style="padding:15px; background:#111; margin-bottom:10px; border-radius:15px; border:1px solid var(--border); animation: msgSlide 0.3s ease-out;">
-                    <b style="color:var(--accent); font-size:16px;">${n.username_text}</b><br>
-                    <small style="color:var(--text-dim)">Владелец: ${n.owner}</small>
-                </div>`);
+            data?.forEach(n => l.innerHTML += `<div style="padding:15px; background:#111; margin-bottom:10px; border-radius:15px; border:1px solid var(--border)">
+                <b style="color:var(--accent)">${n.username_text}</b><br><small>Владелец: ${n.owner}</small></div>`);
         }
 
-        async function showProfile(name) {
-            const { data: u } = await client.from('users').select('*').eq('username', name).maybeSingle();
+        async function deleteMsg(id) { await client.from('messages').delete().eq('id', id); }
+
+        async function showProfile(n) {
+            const { data: u } = await client.from('users').select('*').eq('username', n).maybeSingle();
             if(!u) return;
             document.getElementById('p-user').innerText = u.username;
-            document.getElementById('p-stars').innerText = `⭐ ${u.stars.toLocaleString()}`;
+            document.getElementById('p-stars').innerText = `⭐ ${(u.stars || 0).toLocaleString()}`;
             document.getElementById('p-overlay').style.display = 'flex';
         }
 
         function tab(t, el) {
-            document.querySelectorAll('.main-content').forEach(v => {
-                v.style.display = 'none';
-                v.style.opacity = '0';
-            });
-            const target = document.getElementById('tab-'+t);
-            target.style.display = 'flex';
-            setTimeout(() => target.style.opacity = '1', 50);
-            
+            document.querySelectorAll('.main-content').forEach(v => { v.style.display = 'none'; v.style.opacity = '0'; });
+            const tg = document.getElementById('tab-'+t); tg.style.display = 'flex';
+            setTimeout(() => tg.style.opacity = '1', 50);
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-tab'));
             el.classList.add('active-tab');
         }
 
-        function notify(m, type="success") {
-            const t = document.getElementById('toast');
-            t.innerText = m; 
-            t.style.background = type === "success" ? "var(--accent)" : "var(--err)";
-            t.style.color = type === "success" ? "#000" : "#fff";
-            t.style.top = "20px"; 
-            setTimeout(() => t.style.top = "-100px", 3000);
+        function notify(m, ty="success") {
+            const t = document.getElementById('toast'); t.innerText = m;
+            t.style.background = ty === "success" ? "var(--accent)" : "var(--err)";
+            t.style.top = "20px"; setTimeout(() => t.style.top = "-100px", 3000);
         }
     </script>
 </body>
