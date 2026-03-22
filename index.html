@@ -3,374 +3,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM | SUPREME 12.6 FINAL</title>
+    <title>MOPSOGRAM SUPREME 12.8</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
+        /* Глобальные переменные стиля */
         :root { 
-            --bg: #000; 
+            --bg: #000000; 
             --card: #0a0a0a; 
             --accent: #ff6600; 
-            --text: #fff; 
-            --text-dim: #777; 
+            --text-main: #ffffff; 
+            --text-dim: #777777; 
             --border: #1a1a1a; 
-            --god: #ff0055; 
-            --err: #ff3333; 
+            --god-color: #ff0055; 
+            --error: #ff3333; 
             --success: #00ff88;
         }
 
-        * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-
-        /* Анимации появления */
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .page { display: none; height: 100vh; width: 100vw; flex-direction: row; animation: fadeIn 0.3s ease; }
-        .page.active { display: flex; }
-
-        /* Сайдбар меню */
-        .sidebar { width: 320px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
-        .profile-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
-        .user-avatar { width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 15px; cursor: pointer; transition: 0.3s; object-fit: cover; }
-        .user-avatar:hover { transform: scale(1.05); }
-        .balance { font-size: 28px; font-weight: 900; color: var(--accent); letter-spacing: -1px; }
-
-        .nav-btn { 
-            padding: 20px 30px; cursor: pointer; color: var(--text-dim); font-weight: bold; font-size: 12px; 
-            text-transform: uppercase; letter-spacing: 1px; border-left: 4px solid transparent; transition: 0.2s;
+        * { 
+            box-sizing: border-box; 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
         }
-        .nav-btn:hover { background: rgba(255,102,0,0.05); color: #fff; }
-        .nav-btn.active { color: var(--accent); background: rgba(255,102,0,0.1); border-left-color: var(--accent); }
-        .god-btn { color: var(--god) !important; border-top: 1px solid var(--border); margin-top: auto; }
 
-        /* Контентная часть */
-        .view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        #chat-box { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
-        
-        .msg { padding: 15px 20px; border-radius: 20px; background: #0d0d0d; border: 1px solid var(--border); max-width: 80%; animation: slideUp 0.3s ease; }
-        .msg.mine { align-self: flex-end; border-color: #402000; background: #150d00; }
-        .msg b { color: var(--accent); cursor: pointer; font-size: 14px; text-decoration: underline; }
-        .msg i { color: #555; font-style: normal; font-size: 11px; margin-left: 8px; }
-        .msg-text { margin-top: 8px; line-height: 1.5; font-size: 15px; color: #efefef; word-wrap: break-word; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden; 
+        }
 
-        /* Вкладки */
-        .tab-view { display: none; padding: 40px; flex-direction: column; gap: 25px; overflow-y: auto; height: 100%; }
-        .card { background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 30px; }
+        /* Структура страниц */
+        .page { 
+            display: none; 
+            height: 100vh; 
+            width: 100vw; 
+            flex-direction: row; 
+        }
 
-        /* Поле ввода */
-        .input-bar { padding: 20px 30px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 15px; }
-        input { background: #000; border: 1px solid var(--border); color: #fff; padding: 15px 20px; border-radius: 15px; outline: none; font-size: 14px; width: 100%; }
-        input:focus { border-color: var(--accent); }
-        .btn { padding: 15px 25px; border-radius: 15px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: 0.2s; white-space: nowrap; }
-        .btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .page.active { 
+            display: flex; 
+        }
 
-        /* Уведомления */
-        #toast { position: fixed; top: -100px; left: 50%; transform: translateX(-50%); padding: 18px 40px; border-radius: 50px; background: var(--accent); color: #000; font-weight: 900; z-index: 3000; transition: 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* Боковая панель (Sidebar) */
+        .sidebar { 
+            width: 320px; 
+            background: var(--card); 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            z-index: 10; 
+        }
 
-        /* Модалка профиля */
-        #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index:2000; }
-        .mini-profile { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); border: 1px solid var(--border); border-radius: 40px; width: 360px; padding: 40px; text-align: center; }
+        .profile-area { 
+            padding: 40px 20px; 
+            text-align: center; 
+            border-bottom: 1px solid var(--border); 
+        }
+
+        .user-avatar { 
+            width: 110px; 
+            height: 110px; 
+            border-radius: 50%; 
+            border: 2px solid var(--accent); 
+            margin-bottom: 15px; 
+            object-fit: cover; 
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .balance-display { 
+            font-size: 32px; 
+            font-weight: 900; 
+            color: var(--accent); 
+            letter-spacing: -1px; 
+        }
+
+        /* Навигация */
+        .nav-item { 
+            padding: 22px 30px; 
+            cursor: pointer; 
+            color: var(--text-dim); 
+            font-weight: bold; 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            border-left: 4px solid transparent; 
+            transition: 0.2s; 
+        }
+
+        .nav-item:hover { 
+            background: rgba(255,102,0,0.05); 
+            color: #fff; 
+        }
+
+        .nav-item.active { 
+            color: var(--accent); 
+            background: rgba(255,102,0,0.1); 
+            border-left-color: var(--accent); 
+        }
+
+        .god-item { 
+            color: var(--god-color) !important; 
+            border-top: 1px solid var(--border); 
+            margin-top: auto; 
+        }
+
+        /* Основной контент */
+        .content-view { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            background: #000; 
+            position: relative; 
+        }
+
+        #chat-container { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            scroll-behavior: smooth; 
+        }
+
+        /* Сообщения */
+        .message-bubble { 
+            padding: 15px 20px; 
+            border-radius: 20px; 
+            background: #0d0d0d; 
+            border: 1px solid var(--border); 
+            max-width: 80%; 
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-bubble.mine { 
+            align-self: flex-end; 
+            border-color: #402000; 
+            background: #150d00; 
+        }
+
+        .message-bubble b { 
+            color: var(--accent); 
+            cursor: pointer; 
+            font-size: 14px; 
+            text-decoration: underline; 
+        }
+
+        .message-bubble i { 
+            color: #555; 
+            font-style: normal; 
+            font-size: 11px; 
+            margin-left: 8px; 
+        }
+
+        /* Формы и вкладки */
+        .tab-content { 
+            display: none; 
+            padding: 40px; 
+            flex-direction: column; 
+            gap: 25px; 
+            overflow-y: auto; 
+            height: 100%; 
+        }
+
+        .mopso-card { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            padding: 30px; 
+            border-radius: 30px; 
+        }
+
+        .input-group { 
+            padding: 20px 30px; 
+            background: var(--card); 
+            border-top: 1px solid var(--border); 
+            display: flex; 
+            gap: 15px; 
+        }
+
+        input { 
+            background: #000; 
+            border: 1px solid var(--border); 
+            color: #fff; 
+            padding: 15px 20px; 
+            border-radius: 15px; 
+            outline: none; 
+            font-size: 14px; 
+            width: 100%; 
+        }
+
+        input:focus { 
+            border-color: var(--accent); 
+        }
+
+        .mopso-btn { 
+            padding: 15px 25px; 
+            border-radius: 15px; 
+            border: none; 
+            background: var(--accent); 
+            color: #000; 
+            font-weight: 900; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            font-size: 12px; 
+            transition: 0.2s; 
+        }
+
+        .mopso-btn:hover { 
+            transform: translateY(-2px); 
+            filter: brightness(1.1); 
+        }
+
+        /* Уведомление */
+        #toast-msg { 
+            position: fixed; 
+            top: -100px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            padding: 18px 40px; 
+            border-radius: 50px; 
+            background: var(--accent); 
+            color: #000; 
+            font-weight: 900; 
+            z-index: 5000; 
+            transition: 0.6s cubic-bezier(0.18, 0.89, 0.32, 1.28); 
+        }
+
+        /* Модальное окно */
+        #profile-modal { 
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); 
+            backdrop-filter: blur(10px); 
+            z-index: 3000; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .modal-body { 
+            background: var(--card); 
+            border: 1px solid var(--border); 
+            border-radius: 40px; 
+            width: 380px; 
+            padding: 40px; 
+            text-align: center; 
+        }
     </style>
 </head>
 <body>
 
-    <div id="toast">СИСТЕМА АКТИВИРОВАНА</div>
+    <div id="toast-msg">СИСТЕМА SUPREME 12.8</div>
 
-    <div id="modal-overlay" onclick="closeProfile()">
-        <div class="mini-profile" onclick="event.stopPropagation()">
-            <img id="m-av" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--accent); margin-bottom:20px;">
-            <h2 id="m-name" style="margin:0; font-size: 28px;">USER</h2>
-            <p id="m-stars" style="color:var(--accent); font-weight:900; font-size:30px; margin:15px 0;">⭐ 0</p>
-            <div id="m-nfts" style="font-size:13px; color:#666; background: #000; padding: 15px; border-radius: 20px; border: 1px solid #111; min-height: 40px;"></div>
+    <div id="profile-modal" onclick="closeProfile()">
+        <div class="modal-body" onclick="event.stopPropagation()">
+            <img id="modal-avatar" style="width:120px; height:120px; border-radius:50%; border:3px solid var(--accent); margin-bottom:20px;">
+            <h2 id="modal-username" style="margin:0; font-size: 28px;">USER</h2>
+            <p id="modal-stars-count" style="color:var(--accent); font-weight:900; font-size:30px; margin:15px 0;">⭐ 0</p>
+            <div id="modal-nft-tags" style="font-size:13px; color:#666; background: #000; padding: 15px; border-radius: 20px;"></div>
             
-            <div id="admin-actions" style="display:none; margin-top:25px; border-top:1px solid #222; padding-top:20px;">
-                <button id="mute-btn" class="btn" style="width:100%; background:var(--god); color:#fff;" onclick="toggleMute()">ЗАБЛОКИРОВАТЬ ЧАТ</button>
+            <div id="god-actions" style="display:none; margin-top:25px; border-top:1px solid #222; padding-top:20px;">
+                <button id="btn-mute" class="mopso-btn" style="width:100%; background:var(--god-color); color:#fff;" onclick="handleMuteToggle()">ПЕРЕКЛЮЧИТЬ МУТ</button>
             </div>
-            <button class="btn" style="width:100%; margin-top:20px; background: #fff;" onclick="closeProfile()">ЗАКРЫТЬ</button>
+            <button class="mopso-btn" style="width:100%; margin-top:20px; background: #fff;" onclick="closeProfile()">ЗАКРЫТЬ</button>
         </div>
     </div>
 
-    <div id="p-auth" class="page active" style="align-items:center; justify-content:center; background: radial-gradient(circle at center, #111 0%, #000 100%);">
-        <div class="card" style="width:400px; text-align:center;">
-            <h1 style="color:var(--accent); letter-spacing:10px; margin-bottom:40px; font-size: 35px; font-weight: 900;">MOPSOGRAM</h1>
-            <input type="text" id="log-u" style="margin-bottom:15px;" placeholder="ЛОГИН">
-            <input type="password" id="pass-u" style="margin-bottom:30px;" placeholder="ПАРОЛЬ">
-            <button class="btn" style="width:100%; padding:20px;" onclick="auth()">ВОЙТИ В СИСТЕМУ</button>
+    <div id="page-login" class="page active" style="align-items:center; justify-content:center;">
+        <div class="mopso-card" style="width:400px; text-align:center;">
+            <h1 style="color:var(--accent); letter-spacing:8px; margin-bottom:40px;">MOPSOGRAM</h1>
+            <input type="text" id="auth-user" placeholder="ЛОГИН" style="margin-bottom:15px;">
+            <input type="password" id="auth-pass" placeholder="ПАРОЛЬ" style="margin-bottom:30px;">
+            <button class="mopso-btn" style="width:100%; padding:20px;" onclick="performAuth()">ВОЙТИ В АККАУНТ</button>
         </div>
     </div>
 
-    <div id="p-main" class="page">
+    <div id="page-app" class="page">
         <div class="sidebar">
             <div class="profile-area">
-                <img class="user-avatar" id="my-av" onclick="openProfile(user.username)">
-                <div id="my-name" style="font-weight: 900; font-size: 22px; margin-top: 10px;">USER</div>
-                <div id="my-stars" class="balance">⭐ 0</div>
+                <img class="user-avatar" id="app-my-avatar" onclick="openProfile(currentUser.username)">
+                <div id="app-my-name" style="font-weight: 900; font-size: 22px; margin-top: 10px;">USER</div>
+                <div id="app-my-stars" class="balance-display">⭐ 0</div>
             </div>
-            <div class="nav-btn active" onclick="tab('chat', this)">💬 ОБЩИЙ ЧАТ</div>
-            <div class="nav-btn" onclick="tab('bank', this)">💰 БАНК & ЧЕКИ</div>
-            <div class="nav-btn" onclick="tab('frag', this)">💎 FRAGMENT NFT</div>
-            <div id="god-menu" class="nav-btn god-btn" style="display:none;" onclick="tab('god', this)">⚡ GOD PANEL</div>
+            <div class="nav-item active" onclick="switchTab('chat', this)">💬 ЧАТ СООБЩЕСТВА</div>
+            <div class="nav-item" onclick="switchTab('bank', this)">💰 БАНК И ЧЕКИ</div>
+            <div class="nav-item" onclick="switchTab('nft', this)">💎 FRAGMENT NFT</div>
+            <div id="god-panel-tab" class="nav-item god-item" style="display:none;" onclick="switchTab('god', this)">⚡ ПАНЕЛЬ БОГА</div>
             <div style="margin-top:auto; padding:25px;">
-                <button class="btn" style="width:100%; background:#111; color:#fff; border: 1px solid #222;" onclick="location.reload()">ВЫЙТИ</button>
+                <button class="mopso-btn" style="width:100%; background:#111; color:#fff;" onclick="location.reload()">ВЫЙТИ</button>
             </div>
         </div>
 
-        <div class="view">
-            <div id="t-chat" class="tab-view" style="display:flex; padding:0;">
-                <div id="chat-box"></div>
-                <div class="input-bar">
-                    <input type="text" id="m-in" placeholder="Напишите сообщение..." onkeypress="if(event.key==='Enter') send()">
-                    <button class="btn" onclick="send()">ОТПРАВИТЬ</button>
+        <div class="content-view">
+            <div id="tab-chat" class="tab-content" style="display:flex; padding:0;">
+                <div id="chat-container"></div>
+                <div class="input-group">
+                    <input type="text" id="chat-input" placeholder="Ваше сообщение..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="mopso-btn" onclick="sendMessage()">ОТПРАВИТЬ</button>
                 </div>
             </div>
 
-            <div id="t-bank" class="tab-view">
-                <div class="card">
+            <div id="tab-bank" class="tab-content">
+                <div class="mopso-card">
                     <h2 style="color:var(--accent); margin-top:0;">АКТИВАЦИЯ ЧЕКА</h2>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="c-code" placeholder="Введите код MOPSO-XXXX">
-                        <button class="btn" onclick="redeemCheck()">ОК</button>
+                        <input type="text" id="input-check-code" placeholder="Код MOPSO-XXXXXX">
+                        <button class="mopso-btn" onclick="claimCheck()">ОК</button>
                     </div>
                 </div>
-                <div class="card">
+                <div class="mopso-card">
                     <h2 style="color:var(--accent); margin-top:0;">ПЕРЕВОД ЗВЕЗД</h2>
-                    <input type="text" id="g-to" style="margin-bottom:10px;" placeholder="Ник получателя">
-                    <input type="number" id="g-amt" style="margin-bottom:20px;" placeholder="Сумма">
-                    <button class="btn" style="width:100%" onclick="transfer()">ПОДТВЕРДИТЬ</button>
+                    <input type="text" id="transfer-to" style="margin-bottom:10px;" placeholder="Ник получателя">
+                    <input type="number" id="transfer-amount" style="margin-bottom:20px;" placeholder="Сколько звезд">
+                    <button class="mopso-btn" style="width:100%" onclick="sendStars()">ОТПРАВИТЬ СРЕДСТВА</button>
                 </div>
             </div>
 
-            <div id="t-frag" class="tab-view">
-                <div class="card">
-                    <h2 style="color:var(--accent); margin-top:0;">MINT USERNAME (FREE)</h2>
+            <div id="tab-nft" class="tab-content">
+                <div class="mopso-card">
+                    <h2 style="color:var(--accent); margin-top:0;">MINT USERNAME (NFT)</h2>
                     <div style="display:flex; gap:10px;">
-                        <input type="text" id="n-name" placeholder="@username">
-                        <button class="btn" onclick="mint()">ЗАБРАТЬ</button>
+                        <input type="text" id="nft-mint-name" placeholder="@username">
+                        <button class="mopso-btn" onclick="mintNftName()">ЗАБРАТЬ</button>
                     </div>
                 </div>
-                <h3 style="margin: 10px 0 0 5px; color: var(--text-dim); font-size: 14px;">РЫНОК ИМЕН:</h3>
-                <div id="nft-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
+                <h3 style="color: var(--text-dim); font-size: 14px; margin-left: 10px;">ЗАНЯТЫЕ ИМЕНА:</h3>
+                <div id="nft-grid-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
             </div>
 
-            <div id="t-god" class="tab-view">
-                <div class="card" style="border-color:var(--god)">
-                    <h2 style="color:var(--god); margin-top:0;">GOD CONTROL</h2>
-                    <input type="number" id="gen-amt" style="margin-bottom:10px;" placeholder="Сумма звезд">
-                    <input type="text" id="gen-msg" style="margin-bottom:15px;" placeholder="Сообщение к чеку (необязательно)">
-                    <button class="btn" style="background:var(--god); color:#fff; width:100%;" onclick="createCheck()">СОЗДАТЬ ЧЕК</button>
-                    <div id="last-check" style="margin-top:20px; background:#000; padding:20px; border-radius:15px; color:var(--accent); font-weight: 900; text-align: center; border: 1px dashed var(--accent);">ОЖИДАНИЕ...</div>
+            <div id="tab-god" class="tab-content">
+                <div class="mopso-card" style="border-color:var(--god-color)">
+                    <h2 style="color:var(--god-color); margin-top:0;">GOD CONTROL</h2>
+                    <p style="color: #777;">Создать подарочный чек:</p>
+                    <input type="number" id="god-check-sum" style="margin-bottom:10px;" placeholder="Сумма звезд">
+                    <input type="text" id="god-check-note" style="margin-bottom:15px;" placeholder="Записка к чеку">
+                    <button class="mopso-btn" style="background:var(--god-color); color:#fff; width:100%;" onclick="generateNewCheck()">ГЕНЕРИРОВАТЬ ЧЕК</button>
+                    
+                    <div id="display-generated-code" style="margin-top:20px; background:#000; padding:20px; border-radius:15px; color:var(--accent); font-weight: 900; text-align: center; border: 1px dashed var(--accent);">ОЖИДАНИЕ...</div>
                     <hr style="border: 0; border-top: 1px solid #222; margin: 30px 0;">
-                    <button class="btn" style="background:#fff; color:#000; width:100%;" onclick="clearGlobalChat()">🔥 ОЧИСТИТЬ ЧАТ ДЛЯ ВСЕХ</button>
+                    <button class="mopso-btn" style="background:#fff; color:#000; width:100%;" onclick="globalChatClear()">🔥 ПОЛНАЯ ОЧИСТКА ЧАТА</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Инициализация базы данных
-        const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
-        const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
-        const sb = supabase.createClient(S_URL, S_KEY);
+        // Инициализация Supabase
+        const SUPABASE_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        let user = null;
-        let allNFTs = [];
-        let viewingUser = null;
+        let currentUser = null;
+        let cachedNfts = [];
+        let selectedUserProfile = null;
 
-        // Авторизация пользователя
-        async function auth() {
-            const u = document.getElementById('log-u').value.trim();
-            const p = document.getElementById('pass-u').value.trim();
-            if(!u || !p) return notify("Введите данные!", "err");
+        // --- Авторизация ---
+        async function performAuth() {
+            const username = document.getElementById('auth-user').value.trim();
+            const password = document.getElementById('auth-pass').value.trim();
+            if(!username || !password) return showToast("Заполните все поля!", "error");
 
             try {
-                let { data: ex, error } = await sb.from('users').select('*').eq('username', u).maybeSingle();
-                if(!ex) {
-                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
-                    user = n;
-                    notify("Аккаунт создан! +1000 ⭐");
+                let { data: userRecord, error } = await client.from('users').select('*').eq('username', username).maybeSingle();
+                
+                if(!userRecord) {
+                    // Регистрация нового
+                    const { data: newUser, error: regError } = await client.from('users').insert([
+                        { username: username, password: password, stars: 1000 }
+                    ]).select().single();
+                    if(regError) throw regError;
+                    currentUser = newUser;
+                    showToast("Аккаунт создан! Бонус: 1000 ⭐");
                 } else {
-                    if(ex.password === p) user = ex;
-                    else return notify("Неверный пароль!", "err");
+                    // Вход в существующий
+                    if(userRecord.password === password) {
+                        currentUser = userRecord;
+                    } else {
+                        return showToast("Неверный пароль!", "error");
+                    }
                 }
-                startSession();
-            } catch(e) { notify("Ошибка соединения с БД!", "err"); }
+                launchApp();
+            } catch(e) {
+                console.error(e);
+                showToast("Ошибка базы данных!", "error");
+            }
         }
 
-        // Запуск интерфейса
-        async function startSession() {
-            document.getElementById('p-auth').classList.remove('active');
-            document.getElementById('p-main').classList.add('active');
-            if(user.username.toLowerCase() === 'admin') document.getElementById('god-menu').style.display = 'block';
+        // --- Запуск приложения ---
+        async function launchApp() {
+            document.getElementById('page-login').classList.remove('active');
+            document.getElementById('page-app').classList.add('active');
             
-            await updateNFTCache();
-            updateUI(); 
-            loadChat(); 
-            loadNFTs();
+            if(currentUser.username.toLowerCase() === 'admin') {
+                document.getElementById('god-panel-tab').style.display = 'block';
+            }
+            
+            await syncNfts();
+            refreshSidebar();
+            renderChat();
+            renderNftList();
 
-            // Realtime обновления
-            sb.channel('updates').on('postgres_changes', { event: '*', schema: 'public' }, async (payload) => {
-                if(payload.table === 'fragment_market') await updateNFTCache();
-                loadChat(); loadNFTs();
+            // Реалтайм слушатели
+            client.channel('public_changes').on('postgres_changes', { event: '*', schema: 'public' }, async (p) => {
+                if(p.table === 'fragment_market') await syncNfts();
+                renderChat(); 
+                renderNftList();
             }).subscribe();
 
-            sb.channel('me').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (payload) => {
-                user = payload.new; updateUI();
+            client.channel('user_updates').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${currentUser.id}` }, (p) => {
+                currentUser = p.new;
+                refreshSidebar();
             }).subscribe();
         }
 
-        async function updateNFTCache() {
-            const { data } = await sb.from('fragment_market').select('*');
-            allNFTs = data || [];
-        }
-
-        // Работа с чатом
-        async function loadChat() {
-            const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(100);
-            const box = document.getElementById('chat-box'); box.innerHTML = '';
+        // --- Чат ---
+        async function renderChat() {
+            const { data: messages } = await client.from('messages').select('*').order('created_at', { ascending: true }).limit(100);
+            const chatBox = document.getElementById('chat-container');
+            chatBox.innerHTML = '';
             
-            if(!msgs || msgs.length === 0) {
-                box.innerHTML = '<div style="text-align:center; color:#222; margin-top:50px;">Чат пуст. Напишите что-нибудь!</div>';
+            if(!messages || messages.length === 0) {
+                chatBox.innerHTML = '<div style="text-align:center;color:#333;margin-top:20px;">Сообщений нет. Станьте первым!</div>';
             }
 
-            msgs?.forEach(m => {
-                const isMe = m.username === user.username;
-                const userNfts = allNFTs.filter(n => n.owner === m.username).map(n => n.username_text).join(', ');
-                box.innerHTML += `
-                    <div class="msg ${isMe ? 'mine' : ''}">
-                        <b onclick="openProfile('${m.username}')">${m.username}</b> 
-                        <i>${userNfts ? '['+userNfts+']' : ''}</i>
-                        <div class="msg-text">${m.text}</div>
+            messages?.forEach(msg => {
+                const isMine = msg.username === currentUser.username;
+                const userNftStrings = cachedNfts.filter(n => n.owner === msg.username).map(n => n.username_text).join(', ');
+                
+                chatBox.innerHTML += `
+                    <div class="message-bubble ${isMine ? 'mine' : ''}">
+                        <b onclick="openProfile('${msg.username}')">${msg.username}</b> 
+                        <i>${userNftStrings ? '[' + userNftStrings + ']' : ''}</i>
+                        <div style="margin-top:8px; line-height:1.4;">${msg.text}</div>
                     </div>`;
             });
-            box.scrollTop = box.scrollHeight;
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        async function send() {
-            if(user.is_muted) return notify("У вас временная блокировка чата!", "err");
-            const i = document.getElementById('m-in');
-            if(!i.value.trim()) return;
-            await sb.from('messages').insert([{ username: user.username, text: i.value }]);
-            i.value = '';
+        async function sendMessage() {
+            if(currentUser.is_muted) return showToast("У вас блокировка чата!", "error");
+            const input = document.getElementById('chat-input');
+            const val = input.value.trim();
+            if(!val) return;
+            
+            await client.from('messages').insert([{ username: currentUser.username, text: val }]);
+            input.value = '';
         }
 
-        // Очистка чата для админа
-        async function clearGlobalChat() {
-            if(!confirm("Удалить ВСЕ сообщения в базе данных? Это действие необратимо.")) return;
-            const { error } = await sb.from('messages').delete().neq('username', 'system_mopso');
-            if(!error) notify("Чат успешно очищен!");
-            else notify("Ошибка при очистке!", "err");
-        }
-
-        // Профиль и управление
+        // --- Профиль ---
         async function openProfile(name) {
-            const { data: target } = await sb.from('users').select('*').eq('username', name).maybeSingle();
+            const { data: target } = await client.from('users').select('*').eq('username', name).maybeSingle();
             if(!target) return;
-            viewingUser = target;
-            const nfts = allNFTs.filter(n => n.owner === name).map(n => n.username_text).join(', ');
+            selectedUserProfile = target;
             
-            document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${target.username}`;
-            document.getElementById('m-name').innerText = target.username + (target.is_muted ? " (MUTED)" : "");
-            document.getElementById('m-stars').innerText = "⭐ " + target.stars.toLocaleString();
-            document.getElementById('m-nfts').innerText = nfts ? "NFT Имена: " + nfts : "Нет купленных имен";
+            const nfts = cachedNfts.filter(n => n.owner === name).map(n => n.username_text).join(', ');
+            document.getElementById('modal-avatar').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${target.username}`;
+            document.getElementById('modal-username').innerText = target.username + (target.is_muted ? " (MUTED)" : "");
+            document.getElementById('modal-stars-count').innerText = "⭐ " + target.stars.toLocaleString();
+            document.getElementById('modal-nft-tags').innerText = nfts ? "NFT: " + nfts : "Нет NFT имен";
             
-            const adm = document.getElementById('admin-actions');
-            if(user.username.toLowerCase() === 'admin' && target.username.toLowerCase() !== 'admin') {
-                adm.style.display = 'block';
-                document.getElementById('mute-btn').innerText = target.is_muted ? "РАЗБЛОКИРОВАТЬ" : "ЗАБЛОКИРОВАТЬ ЧАТ";
-            } else adm.style.display = 'none';
+            const godBox = document.getElementById('god-actions');
+            if(currentUser.username.toLowerCase() === 'admin' && target.username.toLowerCase() !== 'admin') {
+                godBox.style.display = 'block';
+            } else {
+                godBox.style.display = 'none';
+            }
 
-            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('profile-modal').style.display = 'flex';
         }
 
-        function closeProfile() { document.getElementById('modal-overlay').style.display = 'none'; }
-
-        async function toggleMute() {
-            await sb.from('users').update({ is_muted: !viewingUser.is_muted }).eq('id', viewingUser.id);
-            notify("Статус изменен"); closeProfile();
+        function closeProfile() {
+            document.getElementById('profile-modal').style.display = 'none';
         }
 
-        // Банк и Чеки
-        async function createCheck() {
-            const amt = parseInt(document.getElementById('gen-amt').value);
-            const msg = document.getElementById('gen-msg').value.trim();
-            if(!amt) return notify("Введите сумму!", "err");
-            
-            const code = "MOPSO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-            await sb.from('checks').insert([{ code, amount: amt, message: msg }]);
-            document.getElementById('last-check').innerText = code;
-            notify("Чек создан!");
+        async function handleMuteToggle() {
+            const newStatus = !selectedUserProfile.is_muted;
+            await client.from('users').update({ is_muted: newStatus }).eq('id', selectedUserProfile.id);
+            showToast("Статус мута обновлен");
+            closeProfile();
         }
 
-        async function redeemCheck() {
-            const code = document.getElementById('c-code').value.trim();
-            const { data: c } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-            if(!c) return notify("Неверный код!", "err");
-            
-            await sb.from('checks').update({ is_used: true }).eq('id', c.id);
-            await sb.from('users').update({ stars: user.stars + c.amount }).eq('id', user.id);
-            
-            if(c.message) alert("Сообщение к чеку: " + c.message);
-            notify(`Начислено ⭐ ${c.amount}`);
-            document.getElementById('c-code').value = '';
+        // --- NFT ---
+        async function syncNfts() {
+            const { data } = await client.from('fragment_market').select('*');
+            cachedNfts = data || [];
         }
 
-        async function transfer() {
-            const to = document.getElementById('g-to').value.trim();
-            const amt = parseInt(document.getElementById('g-amt').value);
-            if(user.stars < amt) return notify("Недостаточно звезд!", "err");
+        async function mintNftName() {
+            const nameInput = document.getElementById('nft-mint-name');
+            const name = nameInput.value.trim();
+            if(!name.startsWith('@')) return showToast("Нужен символ @ в начале!", "error");
             
-            const { data: rec } = await sb.from('users').select('*').eq('username', to).maybeSingle();
-            if(!rec) return notify("Игрок не найден!", "err");
-
-            await sb.from('users').update({ stars: rec.stars + amt }).eq('username', to);
-            await sb.from('users').update({ stars: user.stars - amt }).eq('id', user.id);
-            notify("Звезды отправлены!");
+            const { error } = await client.from('fragment_market').insert([{ username_text: name, owner: currentUser.username }]);
+            
+            if(error) {
+                showToast("Это имя уже занято!", "error");
+            } else {
+                showToast("Поздравляем! Имя ваше.");
+                nameInput.value = '';
+                await syncNfts();
+                renderNftList();
+            }
         }
 
-        // NFT Fragment
-        async function mint() {
-            const name = document.getElementById('n-name').value.trim();
-            if(!name.startsWith('@')) return notify("Нужен @ в начале!", "err");
-            
-            const { error } = await sb.from('fragment_market').insert([{ username_text: name, owner: user.username }]);
-            if(error) return notify("Имя уже занято!", "err");
-            
-            notify("Имя успешно занято!");
-            document.getElementById('n-name').value = '';
-            await updateNFTCache(); loadNFTs();
-        }
-
-        async function loadNFTs() {
-            const l = document.getElementById('nft-list'); l.innerHTML = '';
-            allNFTs.forEach(x => {
-                l.innerHTML += `
-                    <div class="card" style="padding:15px; text-align:center;">
-                        <b style="color:var(--accent); font-size:16px;">${x.username_text}</b><br>
-                        <small style="color:#555">Владелец: ${x.owner}</small>
+        function renderNftList() {
+            const list = document.getElementById('nft-grid-list');
+            list.innerHTML = '';
+            cachedNfts.forEach(nft => {
+                list.innerHTML += `
+                    <div class="mopso-card" style="padding:15px; text-align:center; border-color: #222;">
+                        <b style="color:var(--accent); font-size:16px;">${nft.username_text}</b><br>
+                        <small style="color:#444">Владелец: ${nft.owner}</small>
                     </div>`;
             });
         }
 
-        // Утилиты
-        function updateUI() {
-            document.getElementById('my-name').innerText = user.username + (user.is_muted ? " [MUTED]" : "");
-            document.getElementById('my-stars').innerText = "⭐ " + user.stars.toLocaleString();
-            document.getElementById('my-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.username}`;
+        // --- Банк и Чеки ---
+        async function claimCheck() {
+            const code = document.getElementById('input-check-code').value.trim();
+            const { data: check, error } = await client.from('checks')
+                .select('*')
+                .eq('code', code)
+                .eq('is_used', false)
+                .maybeSingle();
+            
+            if(!check) return showToast("Код недействителен или использован!", "error");
+            
+            // Помечаем чек как использованный и начисляем звезды
+            await client.from('checks').update({ is_used: true }).eq('id', check.id);
+            await client.from('users').update({ stars: currentUser.stars + check.amount }).eq('id', currentUser.id);
+            
+            if(check.message) alert("Записка к чеку: " + check.message);
+            showToast(`Успешно! +${check.amount} ⭐`);
+            document.getElementById('input-check-code').value = '';
         }
 
-        function tab(t, btn) {
-            document.querySelectorAll('.tab-view').forEach(x => x.style.display = 'none');
-            document.getElementById('t-' + t).style.display = 'flex';
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+        async function sendStars() {
+            const targetName = document.getElementById('transfer-to').value.trim();
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+            
+            if(!amount || amount <= 0) return showToast("Сумма некорректна!", "error");
+            if(currentUser.stars < amount) return showToast("Недостаточно звезд!", "error");
+            
+            const { data: receiver } = await client.from('users').select('*').eq('username', targetName).maybeSingle();
+            if(!receiver) return showToast("Получатель не найден!", "error");
+            if(receiver.username === currentUser.username) return showToast("Себе нельзя!", "error");
+
+            await client.from('users').update({ stars: receiver.stars + amount }).eq('username', targetName);
+            await client.from('users').update({ stars: currentUser.stars - amount }).eq('id', currentUser.id);
+            
+            showToast("Перевод выполнен!");
+            document.getElementById('transfer-amount').value = '';
         }
 
-        function notify(m, ty="success") {
-            const t = document.getElementById('toast'); t.innerText = m;
-            t.style.background = ty === "success" ? "var(--success)" : "var(--err)";
-            t.style.top = "20px"; setTimeout(() => t.style.top = "-100px", 3000);
+        // --- Админ-функции ---
+        async function generateNewCheck() {
+            const amount = parseInt(document.getElementById('god-check-sum').value);
+            const message = document.getElementById('god-check-note').value.trim();
+            if(!amount) return showToast("Укажите сумму!", "error");
+            
+            const code = "MOPSO-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+            const { error } = await client.from('checks').insert([{ 
+                code: code, 
+                amount: amount, 
+                message: message, 
+                is_used: false 
+            }]);
+            
+            if(!error) {
+                document.getElementById('display-generated-code').innerText = code;
+                showToast("Чек сгенерирован!");
+            } else {
+                showToast("Ошибка создания чека!", "error");
+            }
+        }
+
+        async function globalChatClear() {
+            if(!confirm("Вы уверены? Чат будет удален для ВСЕХ пользователей.")) return;
+            const { error } = await client.from('messages').delete().neq('username', 'system_null');
+            if(!error) showToast("Чат полностью очищен!");
+        }
+
+        // --- Вспомогательные функции ---
+        function refreshSidebar() {
+            document.getElementById('app-my-name').innerText = currentUser.username + (currentUser.is_muted ? " [MUTED]" : "");
+            document.getElementById('app-my-stars').innerText = "⭐ " + currentUser.stars.toLocaleString();
+            document.getElementById('app-my-avatar').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${currentUser.username}`;
+        }
+
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.getElementById('tab-' + tabId).style.display = (tabId === 'chat' ? 'flex' : 'flex');
+            // Примечание: для чата и других используем flex, чтобы сохранять верстку
+            
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+
+        function showToast(msg, type = "success") {
+            const toast = document.getElementById('toast-msg');
+            toast.innerText = msg;
+            toast.style.background = (type === "success" ? "var(--success)" : "var(--error)");
+            toast.style.color = "#000";
+            toast.style.top = "25px";
+            setTimeout(() => { toast.style.top = "-100px"; }, 3500);
         }
     </script>
 </body>
