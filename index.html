@@ -9,13 +9,12 @@
         :root { 
             --bg: #000; --card: #0a0a0a; --accent: #ff6600; 
             --text: #fff; --text-dim: #777; --border: #1a1a1a; 
-            --god: #ff0055;
+            --god: #ff0055; --err: #ff3333;
         }
 
         * { box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
         body, html { margin: 0; padding: 0; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
 
-        /* --- АНИМАЦИИ --- */
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes profilePop { 
             0% { opacity: 0; transform: translate(-50%, -45%) scale(0.8); }
@@ -27,7 +26,6 @@
         .page { display: none; height: 100vh; width: 100vw; flex-direction: row; animation: slideUp 0.5s ease; }
         .page.active { display: flex; }
 
-        /* --- САЙДБАР --- */
         .sidebar { width: 300px; background: var(--card); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; }
         .profile-area { padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
         .user-avatar { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--accent); margin-bottom: 12px; cursor: pointer; transition: 0.3s; }
@@ -42,7 +40,6 @@
         .nav-btn.active { color: var(--accent); background: rgba(255,102,0,0.08); border-left-color: var(--accent); }
         .god-btn { color: var(--god) !important; border-top: 1px solid var(--border); margin-top: auto; }
 
-        /* --- КОНТЕНТ --- */
         .view { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         #chat-box { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth; }
         
@@ -52,7 +49,6 @@
         .msg i { color: #555; font-style: normal; font-size: 11px; margin-left: 5px; font-weight: 400; }
         .msg-text { margin-top: 6px; line-height: 1.5; font-size: 15px; color: #efefef; }
 
-        /* --- МОДАЛЬНЫЙ ПРОФИЛЬ --- */
         #modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:2000; animation: overlayFade 0.3s forwards; }
         .mini-profile { 
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -61,8 +57,9 @@
             animation: profilePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
-        .input-bar { padding: 20px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .input-bar input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; outline: none; font-size: 14px; }
+        .input-bar-container { padding: 20px; background: var(--card); border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .input-bar-container input { flex: 1; background: #000; border: 1px solid var(--border); color: #fff; padding: 15px; border-radius: 12px; outline: none; font-size: 14px; }
+        
         .btn { padding: 15px 25px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: 900; cursor: pointer; text-transform: uppercase; font-size: 11px; transition: 0.2s; }
         .btn:active { transform: scale(0.95); }
 
@@ -87,11 +84,11 @@
     </div>
 
     <div id="p-auth" class="page active" style="align-items:center; justify-content:center; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);">
-        <div style="background:var(--card); padding:50px; border-radius:45px; width:380px; border:1px solid var(--border); text-align:center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        <div style="background:var(--card); padding:50px; border-radius:45px; width:380px; border:1px solid var(--border); text-align:center;">
             <h1 style="color:var(--accent); letter-spacing:8px; margin-bottom:35px; font-size: 32px;">MOPSOGRAM</h1>
-            <input type="text" id="log-u" class="input-bar" style="width:100%; margin-bottom:12px; border-radius:15px;" placeholder="ЛОГИН">
-            <input type="password" id="pass-u" class="input-bar" style="width:100%; margin-bottom:25px; border-radius:15px;" placeholder="ПАРОЛЬ">
-            <button class="btn" style="width:100%; padding:18px; font-size: 13px;" onclick="auth()">АВТОРИЗАЦИЯ</button>
+            <input type="text" id="log-u" style="width:100%; margin-bottom:12px; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:15px;" placeholder="ЛОГИН">
+            <input type="password" id="pass-u" style="width:100%; margin-bottom:25px; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:15px;" placeholder="ПАРОЛЬ">
+            <button class="btn" style="width:100%; padding:18px;" onclick="auth()">АВТОРИЗАЦИЯ</button>
         </div>
     </div>
 
@@ -112,7 +109,7 @@
         <div class="view">
             <div id="t-chat" class="tab-view" style="display:flex; padding:0;">
                 <div id="chat-box"></div>
-                <div class="input-bar">
+                <div class="input-bar-container">
                     <input type="text" id="m-in" placeholder="Введите сообщение..." onkeypress="if(event.key==='Enter') send()">
                     <button class="btn" onclick="send()">SEND</button>
                 </div>
@@ -120,8 +117,8 @@
 
             <div id="t-frag" class="tab-view">
                 <div class="card">
-                    <h2 style="color:var(--accent); margin:0 0 15px 0;">MINT USERNAME</h2>
-                    <div style="display:flex; gap:10px;"><input type="text" id="n-name" class="input-bar" style="flex:1; margin:0;" placeholder="@username"><button class="btn" onclick="mint()">КУПИТЬ</button></div>
+                    <h2 style="color:var(--accent); margin:0 0 15px 0;">MINT USERNAME (FREE)</h2>
+                    <div style="display:flex; gap:10px;"><input type="text" id="n-name" style="flex:1; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="@username"><button class="btn" onclick="mint()">ЗАБРАТЬ</button></div>
                 </div>
                 <h3 style="margin-left: 10px; color: var(--text-dim);">АКТИВНЫЕ NFT:</h3>
                 <div id="nft-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;"></div>
@@ -129,9 +126,13 @@
 
             <div id="t-bank" class="tab-view">
                 <div class="card">
+                    <h2 style="color:var(--accent); margin:0 0 15px 0;">АКТИВИРОВАТЬ ЧЕК</h2>
+                    <div style="display:flex; gap:10px;"><input type="text" id="check-code" style="flex:1; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="MOPSO-XXXX"><button class="btn" onclick="redeemCheck()">ОК</button></div>
+                </div>
+                <div class="card">
                     <h2 style="color:var(--accent); margin:0 0 20px 0;">ПЕРЕВОД ЗВЕЗД</h2>
-                    <input type="text" id="g-to" class="input-bar" style="width:100%; margin-bottom:10px;" placeholder="Ник получателя">
-                    <input type="number" id="g-amt" class="input-bar" style="width:100%; margin-bottom:20px;" placeholder="Сумма">
+                    <input type="text" id="g-to" style="width:100%; margin-bottom:10px; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="Ник получателя">
+                    <input type="number" id="g-amt" style="width:100%; margin-bottom:20px; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="Сумма">
                     <button class="btn" style="width:100%" onclick="transfer()">ПОДТВЕРДИТЬ</button>
                 </div>
             </div>
@@ -139,7 +140,14 @@
             <div id="t-god" class="tab-view">
                 <div class="card" style="border-color:var(--god)">
                     <h2 style="color:var(--god); margin-top:0;">ADMIN CONTROL</h2>
-                    <button class="btn" style="background:var(--god); color:#fff; width:100%; margin-bottom:10px;" onclick="resetNFTs()">СБРОСИТЬ ВСЕ ЮЗЕРНЕЙМЫ</button>
+                    <p style="color: #777;">Создать чек на звезды:</p>
+                    <div style="display:flex; gap:10px; margin-bottom: 20px;">
+                        <input type="number" id="gen-amt" style="flex:1; padding:15px; background:#000; border:1px solid var(--border); color:#fff; border-radius:12px;" placeholder="Сумма">
+                        <button class="btn" style="background:var(--god); color:#fff;" onclick="createCheck()">СОЗДАТЬ</button>
+                    </div>
+                    <div id="last-check" style="color:var(--accent); font-weight: bold; margin-bottom: 20px; text-align: center;"></div>
+                    <hr style="border: 0; border-top: 1px solid #222; margin: 20px 0;">
+                    <button class="btn" style="background:#222; color:#fff; width:100%; margin-bottom:10px;" onclick="resetNFTs()">СБРОСИТЬ ВСЕ ЮЗЕРНЕЙМЫ</button>
                     <button class="btn" style="background:#222; color:#fff; width:100%;" onclick="clearAllChat()">ОЧИСТИТЬ ВЕСЬ ЧАТ</button>
                 </div>
             </div>
@@ -159,9 +167,9 @@
             const p = document.getElementById('pass-u').value.trim();
             if(!u || !p) return notify("Заполни поля!", "err");
             try {
-                let { data: ex, error } = await sb.from('users').select('*').eq('username', u).maybeSingle();
+                let { data: ex } = await sb.from('users').select('*').eq('username', u).maybeSingle();
                 if(!ex) {
-                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 1000 }]).select().single();
+                    const { data: n } = await sb.from('users').insert([{ username: u, password: p, stars: 100 }]).select().single();
                     user = n;
                 } else {
                     if(ex.password === p) user = ex;
@@ -179,11 +187,12 @@
             await updateNFTCache();
             updateUI(); loadChat(); loadNFTs();
 
-            // REALTIME
             sb.channel('m').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadChat()).subscribe();
             sb.channel('f').on('postgres_changes', { event: '*', schema: 'public', table: 'fragment_market' }, async () => {
-                await updateNFTCache();
-                loadChat(); loadNFTs();
+                await updateNFTCache(); loadChat(); loadNFTs();
+            }).subscribe();
+            sb.channel('u').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${user.id}` }, (payload) => {
+                user = payload.new; updateUI();
             }).subscribe();
         }
 
@@ -194,11 +203,11 @@
 
         function getNFTString(username) {
             const mine = allNFTs.filter(n => n.owner === username).map(n => n.username_text);
-            return mine.length > 0 ? ` (а также ${mine.join(', ')})` : ` (а также...)`;
+            return mine.length > 0 ? ` (NFT: ${mine.join(', ')})` : ``;
         }
 
         async function loadChat() {
-            const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true });
+            const { data } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
             const box = document.getElementById('chat-box'); box.innerHTML = '';
             data?.forEach(m => {
                 const isMe = m.username === user.username;
@@ -225,7 +234,7 @@
                 document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${data.username}`;
                 document.getElementById('m-name').innerText = data.username;
                 document.getElementById('m-stars').innerText = `⭐ ${(data.stars || 0).toLocaleString()}`;
-                document.getElementById('m-nfts').innerText = nftList ? "NFT: " + nftList : "НЕТ NFT ИМЕН";
+                document.getElementById('m-nfts').innerText = nftList ? "Владеет: " + nftList : "НЕТ NFT ИМЕН";
                 document.getElementById('modal-overlay').style.display = 'block';
             }
         }
@@ -239,10 +248,11 @@
 
         async function mint() {
             const n = document.getElementById('n-name').value.trim();
-            if(!n.startsWith('@')) return notify("Нужен @", "err");
+            if(!n.startsWith('@')) return notify("Нужен @ в начале!", "err");
             const { error } = await sb.from('fragment_market').insert([{ username_text: n, owner: user.username }]);
-            if(error) return notify("Имя занято!", "err");
-            notify("NFT Получен!"); 
+            if(error) return notify("Это имя уже занято!", "err");
+            notify("Имя успешно получено!"); 
+            document.getElementById('n-name').value = '';
             await updateNFTCache(); loadNFTs(); loadChat();
         }
 
@@ -253,23 +263,64 @@
             });
         }
 
+        // --- ЛОГИКА ЧЕКОВ (ADMIN) ---
+        async function createCheck() {
+            const amt = parseInt(document.getElementById('gen-amt').value);
+            if(!amt || amt <= 0) return notify("Введите сумму!", "err");
+            const code = "MOPSO-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+            const { error } = await sb.from('checks').insert([{ code: code, amount: amt, is_used: false }]);
+            if(error) return notify("Ошибка БД!", "err");
+            document.getElementById('last-check').innerText = "КОД: " + code;
+            notify("Чек создан!");
+        }
+
+        async function redeemCheck() {
+            const code = document.getElementById('check-code').value.trim();
+            if(!code) return notify("Введите код!", "err");
+            const { data: check } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
+            if(!check) return notify("Код недействителен!", "err");
+            
+            await sb.from('checks').update({ is_used: true }).eq('id', check.id);
+            const { error } = await sb.from('users').update({ stars: user.stars + check.amount }).eq('id', user.id);
+            
+            if(!error) {
+                notify(`Получено ⭐ ${check.amount}`);
+                document.getElementById('check-code').value = '';
+            }
+        }
+
+        async function transfer() {
+            const to = document.getElementById('g-to').value.trim();
+            const amt = parseInt(document.getElementById('g-amt').value);
+            if(!to || !amt || amt <= 0) return notify("Заполни поля!", "err");
+            if(user.stars < amt) return notify("Недостаточно звезд!", "err");
+            
+            const { data: rec } = await sb.from('users').select('*').eq('username', to).maybeSingle();
+            if(!rec) return notify("Игрок не найден!", "err");
+
+            await sb.from('users').update({ stars: rec.stars + amt }).eq('username', to);
+            await sb.from('users').update({ stars: user.stars - amt }).eq('id', user.id);
+            notify("Звезды отправлены!");
+            document.getElementById('g-amt').value = '';
+        }
+
         async function resetNFTs() {
-            if(confirm("ОБНУЛИТЬ ВСЕ ИМЕНА В БАЗЕ?")) {
+            if(confirm("ОБНУЛИТЬ ВСЕ ИМЕНА?")) {
                 await sb.from('fragment_market').delete().neq('id', 0);
-                notify("Рынок очищен!"); await updateNFTCache(); loadNFTs(); loadChat();
+                notify("Рынок очищен!"); updateNFTCache(); loadNFTs();
             }
         }
 
         async function clearAllChat() {
-            if(confirm("УДАЛИТЬ ЧАТ?")) {
+            if(confirm("УДАЛИТЬ ВСЕ СООБЩЕНИЯ?")) {
                 await sb.from('messages').delete().neq('id', 0);
-                notify("Чат пуст");
+                notify("Чат очищен!");
             }
         }
 
         function tab(t, btn) {
             document.querySelectorAll('.tab-view').forEach(x => x.style.display = 'none');
-            document.getElementById('t-' + t).style.display = t === 'chat' ? 'flex' : 'flex';
+            document.getElementById('t-' + t).style.display = 'flex';
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
