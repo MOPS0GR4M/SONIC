@@ -3,207 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM V38 | MESSENGER ELITE</title>
+    <title>MOPSOGRAM V39 | ULTIMATE REALTIME</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --p: #ff9000; --p-dark: #cc7400; --p-glow: rgba(255, 144, 0, 0.2);
-            --bg: #050505; --side: #0a0a0a; --chat: #020202;
-            --brd: #1a1a1a; --text: #eee; --dim: #666;
+            --p: #ff9000; --p-glow: rgba(255, 144, 0, 0.3);
+            --bg: #030303; --side: #0a0a0a; --chat: #050505;
+            --brd: #1a1a1a; --text: #f0f0f0; --dim: #555;
             --red: #ff3333; --green: #00ff88;
         }
 
-        * { box-sizing: border-box; outline: none; transition: all 0.15s ease; }
+        * { box-sizing: border-box; outline: none; transition: 0.2s ease; }
         body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* СКЕЛЕТ ПРИЛОЖЕНИЯ */
+        /* ОСНОВНОЙ ЛЕЙАУТ */
         #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
 
-        /* ЛЕВАЯ ПАНЕЛЬ (СПИСОК КОНТАКТОВ/КАНАЛОВ) */
-        .sidebar { 
-            width: 320px; background: var(--side); border-right: 1px solid var(--brd);
-            display: flex; flex-direction: column; 
-        }
-
-        .side-head { padding: 25px; border-bottom: 1px solid var(--brd); background: #0c0c0c; }
-        .user-card { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-        .av-small { width: 45px; height: 45px; border-radius: 14px; border: 2px solid var(--p); }
-        .u-info b { font-family: 'Orbitron'; font-size: 13px; color: var(--p); }
-        .u-info span { display: block; font-size: 11px; color: var(--green); font-weight: 800; }
-
-        .nav-menu { flex: 1; overflow-y: auto; padding: 10px 0; }
-        .nav-btn {
-            padding: 15px 25px; cursor: pointer; display: flex; align-items: center; gap: 12px;
-            font-size: 13px; font-weight: 700; color: var(--dim); border-left: 3px solid transparent;
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.03); color: #fff; }
-        .nav-btn.active { color: var(--p); background: var(--p-glow); border-left-color: var(--p); }
-
-        /* ЦЕНТРАЛЬНАЯ ЧАСТЬ (ЧАТ) */
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--chat); position: relative; }
+        /* САЙДБАР */
+        .sidebar { width: 320px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; z-index: 10; }
+        .side-header { padding: 30px; border-bottom: 1px solid var(--brd); text-align: center; }
+        .logo-text { font-family: 'Orbitron'; font-size: 24px; color: var(--p); letter-spacing: 3px; font-weight: 900; margin-bottom: 20px; }
         
-        .chat-head { 
-            padding: 15px 30px; border-bottom: 1px solid var(--brd); 
-            display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5);
-        }
-        .chat-head h3 { font-family: 'Orbitron'; font-size: 14px; letter-spacing: 1px; }
+        .profile-box { background: #000; padding: 15px; border-radius: 20px; border: 1px solid var(--brd); display: flex; align-items: center; gap: 15px; }
+        .av-main { width: 50px; height: 50px; border-radius: 15px; border: 2px solid var(--p); box-shadow: 0 0 15px var(--p-glow); }
+        .u-meta b { font-size: 14px; color: #fff; display: block; }
+        .u-meta span { font-size: 12px; color: var(--green); font-weight: 800; font-family: 'JetBrains Mono'; }
 
-        #msg-flow { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 10px; }
+        /* НАВИГАЦИЯ */
+        .nav { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .nav-link { 
+            padding: 16px 30px; cursor: pointer; color: var(--dim); display: flex; align-items: center; gap: 15px;
+            font-weight: 700; font-size: 13px; border-left: 4px solid transparent;
+        }
+        .nav-link:hover { background: rgba(255,255,255,0.02); color: #fff; }
+        .nav-link.active { color: var(--p); background: var(--p-glow); border-left-color: var(--p); }
+
+        /* ОКНО ЧАТА */
+        .viewport { flex: 1; display: flex; flex-direction: column; background: var(--chat); position: relative; }
+        .view-header { padding: 15px 35px; border-bottom: 1px solid var(--brd); background: rgba(0,0,0,0.3); display: flex; justify-content: space-between; align-items: center; }
+        .view-header h2 { font-family: 'Orbitron'; font-size: 14px; margin: 0; }
+
+        #chat-scroll { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* СООБЩЕНИЯ */
-        .m-wrap { display: flex; gap: 12px; max-width: 80%; animation: msgIn 0.2s ease; }
-        .m-wrap.is-me { align-self: flex-end; flex-direction: row-reverse; }
+        /* СООБЩЕНИЯ (МЕССЕНДЖЕР СТИЛЬ) */
+        .msg-row { display: flex; gap: 15px; max-width: 85%; animation: msgFade 0.3s ease; }
+        .msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
         
-        .m-av { width: 35px; height: 35px; border-radius: 10px; border: 1px solid var(--brd); flex-shrink: 0; }
-        .m-content { display: flex; flex-direction: column; gap: 4px; }
-        .m-nick { font-size: 10px; font-weight: 900; color: var(--dim); font-family: 'JetBrains Mono'; }
-        .is-me .m-nick { text-align: right; color: var(--p); }
+        .msg-av { width: 40px; height: 40px; border-radius: 12px; border: 1px solid #222; flex-shrink: 0; }
+        .msg-content { display: flex; flex-direction: column; gap: 5px; }
+        .msg-info { font-size: 11px; font-weight: 800; color: var(--dim); font-family: 'JetBrains Mono'; display: flex; gap: 8px; align-items: center; }
+        .me .msg-info { flex-direction: row-reverse; color: var(--p); }
         
-        .m-text { 
-            padding: 12px 18px; border-radius: 18px; background: #111; border: 1px solid var(--brd);
-            font-size: 14px; line-height: 1.5; color: #ddd; word-break: break-word;
+        .msg-bubble { 
+            padding: 14px 20px; border-radius: 18px; background: #111; border: 1px solid var(--brd);
+            font-size: 14px; line-height: 1.5; color: #eee;
         }
-        .is-me .m-text { background: #1a1500; border-color: var(--p-dark); color: #fff; border-bottom-right-radius: 4px; }
-        .is-other .m-text { border-bottom-left-radius: 4px; }
+        .me .msg-bubble { background: #1a1300; border-color: var(--p); border-bottom-right-radius: 4px; }
+        .msg-row:not(.me) .msg-bubble { border-bottom-left-radius: 4px; }
 
-        .m-titles { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
-        .t-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #222; color: #888; font-weight: 900; text-transform: uppercase; }
+        .title-tag { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #222; color: #888; text-transform: uppercase; }
+        .admin-tag { background: var(--red); color: #fff; }
 
-        @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes msgFade { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* ПОЛЕ ВВОДА */
-        .input-box { padding: 20px 30px; border-top: 1px solid var(--brd); background: var(--side); display: flex; gap: 15px; }
-        .input-box input { 
-            flex: 1; background: #000; border: 1px solid #222; padding: 15px 20px; 
-            border-radius: 12px; color: #fff; font-size: 14px; 
-        }
-        .input-box input:focus { border-color: var(--p); }
+        /* ВВОД */
+        .chat-input-zone { padding: 25px 35px; border-top: 1px solid var(--brd); background: var(--side); display: flex; gap: 15px; }
+        .chat-input-zone input { flex: 1; background: #000; border: 1px solid #222; padding: 16px 22px; border-radius: 14px; color: #fff; font-size: 14px; }
+        .chat-input-zone input:focus { border-color: var(--p); box-shadow: 0 0 10px var(--p-glow); }
 
-        /* UI ЭЛЕМЕНТЫ */
-        .btn { 
-            background: var(--p); color: #000; border: none; padding: 12px 25px; 
-            border-radius: 10px; font-family: 'Orbitron'; font-weight: 900; font-size: 11px; cursor: pointer; 
-        }
-        .btn:hover { transform: scale(1.03); background: #fff; }
+        /* КНОПКИ */
+        .btn { background: var(--p); color: #000; border: none; padding: 12px 25px; border-radius: 12px; font-family: 'Orbitron'; font-weight: 900; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+        .btn:hover { transform: scale(1.02); filter: brightness(1.1); }
         .btn-red { background: var(--red); color: #fff; }
 
-        /* ЭКРАНЫ */
-        .screen { display: none; padding: 50px; height: 100%; overflow-y: auto; }
-        .screen.active { display: block; }
-        .card { background: #0c0c0c; border: 1px solid var(--brd); padding: 30px; border-radius: 20px; margin-bottom: 25px; }
+        /* ЭКРАНЫ ПАНЕЛИ */
+        .page { display: none; padding: 60px; height: 100%; overflow-y: auto; }
+        .page.active { display: block; }
+        .card { background: #080808; border: 1px solid var(--brd); padding: 35px; border-radius: 25px; margin-bottom: 25px; }
 
         /* МУТ ЛОКЕР */
-        #mute-overlay { 
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; 
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; backdrop-filter: blur(10px);
-        }
+        #mute-lock { position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
 
         /* AUTH */
-        #auth-scr { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; align-items: center; justify-content: center; }
-        .auth-box { width: 340px; text-align: center; }
+        #auth-wall { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .auth-container { width: 360px; text-align: center; }
 
-        #notify { 
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); 
-            background: var(--p); color: #000; padding: 12px 30px; border-radius: 40px; 
-            font-weight: 900; z-index: 6000; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-        }
+        #toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) translateY(-150px); background: var(--p); color: #000; padding: 14px 40px; border-radius: 50px; font-weight: 900; z-index: 10000; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28); box-shadow: 0 10px 30px rgba(0,0,0,0.5); font-family: 'Orbitron'; }
     </style>
 </head>
 <body>
 
-<div id="notify">SYSTEM_READY</div>
+<div id="toast">SYSTEM_ONLINE</div>
 
-<div id="auth-scr">
-    <div class="auth-box">
-        <h1 style="font-family:'Orbitron'; color:var(--p); font-size:40px; margin-bottom:10px;">MOPSO</h1>
-        <p style="color:var(--dim); font-size:10px; letter-spacing:4px; margin-bottom:40px;">QUANTUM_MESSENGER_V38</p>
-        <input type="text" id="l-u" placeholder="IDENTITY_LOGIN" style="margin-bottom:10px; width:100%; padding:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:12px; color:#fff;">
-        <input type="password" id="l-p" placeholder="ACCESS_KEY" style="margin-bottom:20px; width:100%; padding:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:12px; color:#fff;">
-        <button class="btn" onclick="Core.login()" style="width:100%;">AUTHORIZE</button>
+<div id="auth-wall">
+    <div class="auth-container">
+        <h1 class="logo-text" style="font-size: 45px;">MOPSOGRAM</h1>
+        <p style="color:var(--dim); font-size:10px; letter-spacing:5px; margin-bottom:40px;">SECURE QUANTUM PROTOCOL V39</p>
+        <input type="text" id="auth-u" placeholder="LOGIN_ID" style="width:100%; padding:20px; background:#080808; border:1px solid #1a1a1a; border-radius:15px; color:#fff; margin-bottom:10px;">
+        <input type="password" id="auth-p" placeholder="PASSWORD_KEY" style="width:100%; padding:20px; background:#080808; border:1px solid #1a1a1a; border-radius:15px; color:#fff; margin-bottom:25px;">
+        <button class="btn" onclick="Engine.init()" style="width:100%; padding:20px;">AUTHORIZE_SESSION</button>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar">
-        <div class="side-head">
-            <div class="user-card">
-                <img id="u-av" class="av-small" src="">
-                <div class="u-info">
-                    <b id="u-name">@USER</b>
-                    <span id="u-stars">0 ⭐</span>
+        <div class="side-header">
+            <div class="logo-text">MOPSOGRAM</div>
+            <div class="profile-box">
+                <img id="my-av" class="av-main" src="">
+                <div class="u-meta">
+                    <b id="my-nick">@USER</b>
+                    <span id="my-stars">0 ⭐</span>
                 </div>
             </div>
-            <button class="btn" style="width:100%; background:#1a1a1a; color:#888;" onclick="location.reload()">TERMINATE_SESSION</button>
         </div>
 
-        <nav class="nav-menu">
-            <div class="nav-btn active" onclick="Core.tab('chat', this)">💬 GLOBAL_CHAT</div>
-            <div class="nav-btn" onclick="Core.tab('vault', this)">🔐 VAULT & TITLES</div>
-            <div class="nav-btn" onclick="Core.tab('checks', this)">💎 REDEEM_CHECKS</div>
-            <div id="adm-link" class="nav-btn" style="display:none; color:var(--red);" onclick="Core.tab('admin', this)">⚡ ROOT_CONTROL</div>
+        <nav class="nav">
+            <div class="nav-link active" onclick="Engine.tab('chat', this)">📡 TERMINAL_FEED</div>
+            <div class="nav-link" onclick="Engine.tab('identity', this)">👤 IDENTITY_VAULT</div>
+            <div class="nav-link" onclick="Engine.tab('redeem', this)">💎 STAR_REDEEM</div>
+            <div id="root-link" class="nav-link" style="display:none; color:var(--red);" onclick="Engine.tab('root', this)">⚡ ROOT_SYSTEM</div>
         </nav>
+
+        <div style="padding: 25px;">
+            <button class="btn" style="width:100%; background: #111; color: #444;" onclick="location.reload()">DISCONNECT</button>
+        </div>
     </aside>
 
-    <main class="chat-area">
+    <main class="viewport">
         
-        <div id="scr-chat" class="screen active" style="padding:0; display:flex; flex-direction:column;">
-            <div id="mute-overlay">
-                <h1 style="color:var(--red); font-family:'Orbitron';">ACCESS_DENIED</h1>
-                <p>ТВОЙ ГОЛОС В ТЕРМИНАЛЕ ЗАБЛОКИРОВАН</p>
+        <div id="pg-chat" class="page active" style="padding:0; display:flex; flex-direction:column;">
+            <div id="mute-lock">
+                <h1 style="color:var(--red); font-family:'Orbitron';">VOICE_REVOKED</h1>
+                <p>ВАШ ДОСТУП К ТЕРМИНАЛУ ЗАБЛОКИРОВАН АДМИНИСТРАТОРОМ</p>
             </div>
-            <div class="chat-head">
-                <h3>#GLOBAL_FEED</h3>
-                <div style="font-size:10px; color:var(--green);" id="online-counter">ENCRYPTED_CONNECTION</div>
+            <div class="view-header">
+                <h2>#GLOBAL_TERMINAL</h2>
+                <div id="status-tag" style="font-size:9px; color:var(--green); font-weight:900;">CONNECTED // ENCRYPTED</div>
             </div>
-            <div id="msg-flow"></div>
-            <div class="input-box">
-                <input type="text" id="m-in" placeholder="TYPE_MESSAGE..." onkeypress="if(event.key==='Enter') Core.send()">
-                <button class="btn" onclick="Core.send()">SEND</button>
+            <div id="chat-scroll"></div>
+            <div class="chat-input-zone">
+                <input type="text" id="chat-in" placeholder="ENTER_DATA_STREAM..." onkeypress="if(event.key==='Enter') Engine.send()">
+                <button class="btn" onclick="Engine.send()">SEND</button>
             </div>
         </div>
 
-        <div id="scr-vault" class="screen">
-            <h1 style="font-family:'Orbitron'; margin-bottom:30px;">IDENTITY_VAULT</h1>
+        <div id="pg-identity" class="page">
+            <h1 style="font-family:'Orbitron';">IDENTITY_VAULT</h1>
             <div class="card">
-                <h3>ADD_NEW_TITLE</h3>
-                <p style="color:var(--dim); font-size:12px; margin-bottom:20px;">Новый ник будет добавлен в список твоих титулов.</p>
+                <h3>CREATE_NEW_TITLE</h3>
+                <p style="color:var(--dim); font-size:12px; margin-bottom:20px;">Твои титулы видны всем участникам чата под твоим именем.</p>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="t-in" placeholder="example: rich" style="flex:1;">
-                    <button class="btn" onclick="Core.addTitle()">MINT</button>
+                    <input type="text" id="title-in" placeholder="e.g. rich, phantom, king">
+                    <button class="btn" onclick="Engine.addTitle()">MINT</button>
                 </div>
-                <div id="my-badges" style="margin-top:20px; display:flex; gap:8px; flex-wrap:wrap;"></div>
+                <div id="vault-list" style="margin-top:25px; display:flex; gap:10px; flex-wrap:wrap;"></div>
             </div>
         </div>
 
-        <div id="scr-checks" class="screen">
-            <h1 style="font-family:'Orbitron'; margin-bottom:30px;">STARS_REDEEM</h1>
+        <div id="pg-redeem" class="page">
+            <h1 style="font-family:'Orbitron';">STAR_REDEEM_CENTER</h1>
             <div class="card">
-                <h3>ACTIVATE_CHECK</h3>
-                <input type="text" id="c-in" placeholder="MOPSO_XXXX_XXXX" style="width:100%; margin-bottom:15px;">
-                <button class="btn" onclick="Core.redeemCheck()" style="width:100%;">CLAIM_STARS</button>
+                <h3>ACTIVATE_VOUCHER</h3>
+                <input type="text" id="check-in" placeholder="MOPSOGRAM_XXXX_XXXX" style="width:100%; margin-bottom:20px; text-align:center; font-family:monospace;">
+                <button class="btn" onclick="Engine.claimCheck()" style="width:100%;">REDEEM_STARS</button>
             </div>
         </div>
 
-        <div id="scr-admin" class="screen">
-            <h1 style="color:var(--red); font-family:'Orbitron';">ROOT_OVERRIDE</h1>
+        <div id="pg-root" class="page">
+            <h1 style="color:var(--red); font-family:'Orbitron';">ROOT_OVERRIDE_CONSOLE</h1>
             
             <div class="card" style="border-color:var(--red);">
-                <h3>GENERATE_ASSET_CHECK</h3>
-                <p>Создать чек на 50,000 звезд.</p>
-                <button class="btn" onclick="Core.genCheck()" style="width:100%;">CREATE_50K_CHECK</button>
-                <div id="gen-out" style="margin-top:15px; color:var(--p); font-family:monospace; text-align:center; font-weight:bold;"></div>
+                <h3>GENERATE_ASSET</h3>
+                <p>Создать ваучер на 50,000 ⭐</p>
+                <button class="btn" onclick="Engine.genCheck()">GENERATE_CODE</button>
+                <div id="gen-result" style="margin-top:20px; color:var(--p); font-family:monospace; font-size:20px; font-weight:900; text-align:center;"></div>
             </div>
 
             <div class="card">
-                <h3>USER_RESTRICTION_ENGINE</h3>
-                <input type="text" id="adm-u" placeholder="@target_nick" style="width:100%; margin-bottom:10px;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <button class="btn btn-red" onclick="Core.toggleMute()">MUTE / UNMUTE</button>
-                    <button class="btn" style="background:#222; color:#fff;" onclick="Core.wipeMessages()">WIPE_HISTORY</button>
+                <h3>RESTRICTION_PROTOCOL</h3>
+                <input type="text" id="adm-target" placeholder="@user_nick" style="width:100%; margin-bottom:15px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <button class="btn btn-red" onclick="Engine.muteToggle()">MUTE_UNMUTE</button>
+                    <button class="btn" style="background:#222; color:#fff;" onclick="Engine.clearAll()">WIPE_HISTORY</button>
                 </div>
             </div>
         </div>
@@ -212,21 +197,17 @@
 </div>
 
 <script>
-    /* MOPSOGRAM CORE V38
-       HANDLING: REALTIME, AUTH, TITLES, CHECKS, MUTES
-    */
-
     const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    const Core = {
+    const Engine = {
         me: null,
 
-        // 1. LOGIN
-        async login() {
-            const u = document.getElementById('l-u').value.trim();
-            const p = document.getElementById('l-p').value.trim();
+        // АВТОРИЗАЦИЯ
+        async init() {
+            const u = document.getElementById('auth-u').value.trim();
+            const p = document.getElementById('auth-p').value.trim();
             if(!u) return;
             const nick = u.startsWith('@') ? u : '@' + u;
 
@@ -235,162 +216,160 @@
             if(!user) {
                 const { data: n } = await sb.from('users').insert([{
                     username: nick, password: p, stars: 1000, 
-                    role: nick === '@admin' ? 'admin' : 'user', titles: []
+                    role: (nick === '@admin' || nick === '@mopsogram') ? 'admin' : 'user', titles: []
                 }]).select().single();
                 this.me = n;
             } else {
-                if(user.password !== p) return this.toast("WRONG_ACCESS_KEY", "red");
+                if(user.password !== p) return this.notify("ACCESS_DENIED", "red");
                 this.me = user;
             }
 
-            document.getElementById('auth-scr').style.display = 'none';
+            document.getElementById('auth-wall').style.display = 'none';
             document.getElementById('app').style.display = 'flex';
-            if(this.me.role === 'admin') document.getElementById('adm-link').style.display = 'flex';
+            if(this.me.role === 'admin') document.getElementById('root-link').style.display = 'flex';
 
-            this.sync();
-            this.loadChat();
-            this.updateUI();
-            this.toast("ENCRYPTION_ESTABLISHED");
+            this.setupRealtime();
+            this.loadMessages();
+            this.updateProfileUI();
+            this.notify("WELCOME_TO_MOPSOGRAM");
         },
 
-        // 2. REALTIME SYNC
-        sync() {
-            // Сообщения (Insert & Delete)
-            sb.channel('msgs').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (pl) => {
-                if(pl.event === 'INSERT') this.renderMsg(pl.new);
-                if(pl.event === 'DELETE') {
-                    document.getElementById('msg-flow').innerHTML = '';
-                    this.toast("HISTORY_WIPED_BY_ROOT");
-                }
-            }).subscribe();
+        // REALTIME ENGINE (FIXED)
+        setupRealtime() {
+            // Слушаем сообщения
+            sb.channel('public-chat')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (pl) => {
+                // Магия: догружаем данные юзера для аватарок
+                const { data: author } = await sb.from('users').select('*').eq('id', pl.new.user_id).single();
+                this.renderMsg({ ...pl.new, users: author });
+            })
+            .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
+                document.getElementById('chat-scroll').innerHTML = '';
+                this.notify("TERMINAL_WIPED_BY_ROOT", "red");
+            })
+            .subscribe();
 
-            // Профиль (Мут, Звезды, Ники)
-            sb.channel('me').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${this.me.id}` }, (pl) => {
+            // Слушаем себя (муты, титулы, звезды)
+            sb.channel('my-data')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${this.me.id}` }, (pl) => {
                 this.me = pl.new;
-                this.updateUI();
-            }).subscribe();
+                this.updateProfileUI();
+            })
+            .subscribe();
         },
 
-        // 3. CHAT LOGIC
-        async loadChat() {
+        // ЧАТ
+        async loadMessages() {
             const { data: msgs } = await sb.from('messages').select('*, users(*)').order('created_at', { ascending: true });
-            document.getElementById('msg-flow').innerHTML = '';
+            document.getElementById('chat-scroll').innerHTML = '';
             msgs?.forEach(m => this.renderMsg(m));
         },
 
         renderMsg(m) {
-            const flow = document.getElementById('msg-flow');
+            const scroll = document.getElementById('chat-scroll');
             const isMe = m.username === this.me.username;
             const author = m.users || { titles: [] };
             
-            const wrap = document.createElement('div');
-            wrap.className = `m-wrap ${isMe ? 'is-me' : 'is-other'}`;
+            const row = document.createElement('div');
+            row.className = `msg-row ${isMe ? 'me' : ''}`;
             
-            let titles = author.titles?.map(t => `<span class="t-badge">@${t}</span>`).join('') || '';
-            if(m.username === '@admin') titles += `<span class="t-badge" style="background:var(--red); color:#fff;">ROOT</span>`;
+            let badges = author.titles?.map(t => `<span class="title-tag">@${t}</span>`).join('') || '';
+            if(author.role === 'admin') badges += `<span class="title-tag admin-tag">ROOT</span>`;
 
-            wrap.innerHTML = `
-                <img class="m-av" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${m.username}">
-                <div class="m-content">
-                    <div class="m-nick">${m.username}</div>
-                    <div class="m-text">${m.text}</div>
-                    <div class="m-titles">${titles}</div>
+            row.innerHTML = `
+                <img class="msg-av" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${m.username}">
+                <div class="msg-content">
+                    <div class="msg-info"><span>${m.username}</span> ${badges}</div>
+                    <div class="msg-bubble">${m.text}</div>
                 </div>
             `;
-            flow.appendChild(wrap);
-            flow.scrollTop = flow.scrollHeight;
+            scroll.appendChild(row);
+            scroll.scrollTop = scroll.scrollHeight;
         },
 
         async send() {
-            if(this.me.is_muted) return this.toast("YOU_ARE_MUTED", "red");
-            const i = document.getElementById('m-in');
-            if(!i.value.trim()) return;
+            if(this.me.is_muted) return this.notify("RESTRICTED_BY_ADMIN", "red");
+            const i = document.getElementById('chat-in');
+            const txt = i.value.trim();
+            if(!txt) return;
 
-            const txt = i.value;
             i.value = '';
             await sb.from('messages').insert({ username: this.me.username, text: txt, user_id: this.me.id });
         },
 
-        // 4. VAULT (TITLES)
+        // ТИТУЛЫ
         async addTitle() {
-            const i = document.getElementById('t-in');
-            const val = i.value.trim().replace('@', '');
-            if(!val) return;
+            const i = document.getElementById('title-in');
+            const t = i.value.trim().replace('@', '');
+            if(!t) return;
 
-            const updated = [...new Set([...(this.me.titles || []), val])];
-            const { error } = await sb.from('users').update({ titles: updated }).eq('id', this.me.id);
-            if(!error) {
-                this.toast("TITLE_ADDED");
-                i.value = '';
-            }
+            const newList = [...new Set([...(this.me.titles || []), t])];
+            await sb.from('users').update({ titles: newList }).eq('id', this.me.id);
+            i.value = '';
+            this.notify("IDENTITY_UPDATED");
         },
 
-        // 5. CHECKS SYSTEM
-        async redeemCheck() {
-            const code = document.getElementById('c-in').value.trim();
-            const { data: check } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
+        // ЧЕКИ
+        async claimCheck() {
+            const code = document.getElementById('check-in').value.trim();
+            const { data: c } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
 
-            if(!check) return this.toast("INVALID_OR_USED_CHECK", "red");
+            if(!c) return this.notify("INVALID_OR_USED_CODE", "red");
 
-            // 1. Помечаем чек как использованный
-            await sb.from('checks').update({ is_used: true }).eq('id', check.id);
-            // 2. Начисляем звезды
-            await sb.from('users').update({ stars: this.me.stars + check.amount }).eq('id', this.me.id);
+            await sb.from('checks').update({ is_used: true }).eq('id', c.id);
+            await sb.from('users').update({ stars: this.me.stars + c.amount }).eq('id', this.me.id);
             
-            this.toast(`REDEEMED ${check.amount} ⭐!`);
-            document.getElementById('c-in').value = '';
+            this.notify(`RECEIVED ${c.amount} ⭐!`);
+            document.getElementById('check-in').value = '';
         },
 
-        // 6. ADMIN ROOT
+        // АДМИНКА
         async genCheck() {
-            const code = "MOPSO_" + Math.random().toString(36).substr(2, 9).toUpperCase();
-            const { error } = await sb.from('checks').insert({ code, amount: 50000, creator_id: this.me.id });
-            if(!error) {
-                document.getElementById('gen-out').innerText = code;
-                this.toast("CHECK_CREATED");
-            }
+            const code = "MOPSOGRAM_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            await sb.from('checks').insert({ code, amount: 50000, creator_id: this.me.id });
+            document.getElementById('gen-result').innerText = code;
+            this.notify("VOUCHER_GENERATED");
         },
 
-        async toggleMute() {
-            const target = document.getElementById('adm-u').value.trim();
+        async muteToggle() {
+            const target = document.getElementById('adm-target').value.trim();
             const { data: u } = await sb.from('users').select('*').eq('username', target).single();
-            if(!u) return this.toast("USER_NOT_FOUND", "red");
+            if(!u) return this.notify("USER_NOT_FOUND", "red");
 
             await sb.from('users').update({ is_muted: !u.is_muted }).eq('username', target);
-            this.toast(`MUTE_STATUS_UPDATED: ${target}`);
+            this.notify(`MUTE_STATE_FLIPPED: ${target}`);
         },
 
-        async wipeMessages() {
-            if(!confirm("WIPE_ALL_HISTORY?")) return;
-            await sb.from('messages').delete().neq('username', 'system_node');
+        async clearAll() {
+            if(!confirm("WIPE_GLOBAL_HISTORY?")) return;
+            await sb.from('messages').delete().neq('username', 'mopsogram_system');
         },
 
-        // 7. UI HELPERS
-        updateUI() {
-            document.getElementById('u-name').innerText = this.me.username;
-            document.getElementById('u-stars').innerText = this.me.stars.toLocaleString() + " ⭐";
-            document.getElementById('u-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${this.me.username}`;
+        // UI
+        updateProfileUI() {
+            document.getElementById('my-nick').innerText = this.me.username;
+            document.getElementById('my-stars').innerText = this.me.stars.toLocaleString() + " ⭐";
+            document.getElementById('my-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${this.me.username}`;
             
-            const badges = document.getElementById('my-badges');
-            badges.innerHTML = this.me.titles?.map(t => `<span class="t-badge" style="padding:5px 10px; font-size:10px;">@${t}</span>`).join('') || '';
+            const vList = document.getElementById('vault-list');
+            vList.innerHTML = this.me.titles?.map(t => `<span class="title-tag" style="padding:8px 15px; font-size:11px;">@${t}</span>`).join('') || '';
 
-            // MUTE LOCKER
-            document.getElementById('mute-overlay').style.display = this.me.is_muted ? 'flex' : 'none';
+            document.getElementById('mute-lock').style.display = this.me.is_muted ? 'flex' : 'none';
         },
 
         tab(id, el) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('scr-' + id).classList.add('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.getElementById('pg-' + id).classList.add('active');
             el.classList.add('active');
         },
 
-        toast(m, c=null) {
-            const n = document.getElementById('notify');
-            n.innerText = m;
-            n.style.background = c === 'red' ? 'var(--red)' : 'var(--p)';
-            n.style.transform = "translateX(-50%) translateY(30px)";
-            setTimeout(() => n.style.transform = "translateX(-50%) translateY(-100px)", 3000);
+        notify(m, color = "orange") {
+            const t = document.getElementById('toast');
+            t.innerText = m;
+            t.style.background = color === "red" ? 'var(--red)' : 'var(--p)';
+            t.style.transform = "translateX(-50%) translateY(180px)";
+            setTimeout(() => t.style.transform = "translateX(-50%) translateY(-150px)", 3000);
         }
     };
 </script>
