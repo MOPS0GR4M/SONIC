@@ -3,123 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM 24.0 | FIX EDITION</title>
+    <title>MOPSOGRAM 25.0 | FIXED</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --p: #ff9000; --bg: #000; --side: #0a0a0a; --chat: #050505;
-            --brd: #1f1f1f; --text: #eee; --muted: #666;
-        }
-
+        :root { --p: #ff9000; --bg: #000; --side: #0a0a0a; --chat: #050505; --brd: #1f1f1f; --text: #eee; }
         * { box-sizing: border-box; outline: none; transition: 0.2s; }
         body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        .btn { background: var(--p); border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; font-size: 13px; width: 100%; }
-        .btn:hover { transform: scale(1.02); box-shadow: 0 0 20px rgba(255,144,0,0.4); }
-        
-        input { background: #111; border: 1px solid var(--brd); padding: 12px 15px; border-radius: 12px; color: #fff; font-family: 'JetBrains Mono'; width: 100%; margin-bottom: 10px; }
-        input:focus { border-color: var(--p); }
+        .btn { background: var(--p); border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; width: 100%; }
+        input { background: #111; border: 1px solid var(--brd); padding: 12px; border-radius: 12px; color: #fff; width: 100%; margin-bottom: 10px; font-family: 'JetBrains Mono'; }
 
-        /* LAYOUT */
+        /* UI */
         #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
-        .sidebar { width: 300px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
-        .viewport { flex: 1; display: flex; flex-direction: column; background: var(--chat); position: relative; }
+        .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
+        .viewport { flex: 1; display: flex; flex-direction: column; background: var(--chat); }
 
-        .nav-link { padding: 18px 25px; cursor: pointer; color: var(--muted); font-weight: 700; font-size: 12px; text-transform: uppercase; }
-        .nav-link.active { background: var(--p); color: #000; border-radius: 0 50px 50px 0; margin-right: 15px; }
+        .nav-item { padding: 15px 20px; cursor: pointer; color: #666; font-weight: 700; font-size: 12px; }
+        .nav-item.active { background: var(--p); color: #000; border-radius: 0 50px 50px 0; margin-right: 10px; }
 
         /* CHAT */
-        #messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 20px; }
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; background: #111; border: 1px solid var(--brd); cursor: pointer; align-self: flex-start; }
-        .msg.me { align-self: flex-end; border-color: var(--p); background: #1a1300; }
-        .msg-u { font-size: 10px; font-weight: 800; color: var(--p); margin-bottom: 4px; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .m-wrap { display: flex; flex-direction: column; max-width: 80%; cursor: pointer; }
+        .m-wrap.me { align-self: flex-end; }
+        .bubble { padding: 12px 16px; border-radius: 18px; background: #111; border: 1px solid var(--brd); font-size: 14px; }
+        .me .bubble { border-color: var(--p); background: #1a1300; }
+        .u-label { font-size: 10px; font-weight: 800; color: var(--p); margin-bottom: 4px; padding-left: 5px; }
 
-        /* MODAL */
-        #profile-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .profile-card { background: var(--side); width: 320px; border-radius: 30px; border: 1px solid var(--brd); padding: 30px; text-align: center; }
+        /* MODAL PROFILE (FIXED) */
+        #prof-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .p-card { background: var(--side); width: 300px; border-radius: 30px; border: 1px solid var(--brd); padding: 30px; text-align: center; }
+        .p-av { width: 100px; height: 100px; border-radius: 30px; border: 2px solid var(--p); margin-bottom: 15px; }
 
-        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150px); background: var(--p); color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 800; z-index: 10000; transition: 0.5s; }
+        #notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150px); background: var(--p); color: #000; padding: 10px 25px; border-radius: 50px; font-weight: 800; z-index: 10000; transition: 0.5s; }
     </style>
 </head>
 <body>
 
-<div id="toast">SYSTEM_UPDATE</div>
+<div id="notify">SYSTEM</div>
 
-<div id="auth-screen" style="position:fixed; inset:0; background:#000; z-index:9000; display:flex; align-items:center; justify-content:center;">
-    <div style="width:300px; text-align:center;">
-        <h1 style="font-family:'Orbitron'; color:var(--p);">MOPSOGRAM</h1>
-        <input type="text" id="a-u" placeholder="@username">
-        <input type="password" id="a-p" placeholder="password">
-        <button class="btn" onclick="auth()">LOGIN / JOIN</button>
+<div id="auth-scr" style="position:fixed; inset:0; background:#000; z-index:8000; display:flex; align-items:center; justify-content:center;">
+    <div style="width:280px; text-align:center;">
+        <h1 style="font-family:'Orbitron'; color:var(--p); margin-bottom:30px;">MOPSOGRAM</h1>
+        <input type="text" id="log-u" placeholder="@username">
+        <input type="password" id="log-p" placeholder="password">
+        <button class="btn" onclick="login()">ENTER TERMINAL</button>
     </div>
 </div>
 
-<div id="profile-modal" onclick="this.style.display='none'">
-    <div class="profile-card" onclick="event.stopPropagation()">
-        <img id="p-av" style="width:100px; height:100px; border-radius:30px; border:2px solid var(--p); margin-bottom:15px;">
-        <h2 id="p-nick" style="color:var(--p); margin:0;"></h2>
-        <div id="p-stars" style="font-size:20px; font-weight:900; margin:10px 0;">0 ⭐</div>
-        <div id="p-role" style="font-size:10px; opacity:0.5; margin-bottom:20px;">USER</div>
-        <div id="p-admin-tools" style="display:none; border-top:1px solid #222; padding-top:15px;">
-            <button class="btn" style="background:#ff4444; color:#fff" onclick="muteUser()">MUTE USER</button>
+<div id="prof-modal" onclick="this.style.display='none'">
+    <div class="p-card" onclick="event.stopPropagation()">
+        <img id="m-av" class="p-av">
+        <h2 id="m-nick" style="margin:0; color:var(--p);"></h2>
+        <div id="m-stars" style="font-size:22px; font-weight:900; margin:10px 0;"></div>
+        <div id="m-role" style="font-size:10px; opacity:0.5; text-transform:uppercase; margin-bottom:20px;"></div>
+        <div id="m-admin-tools" style="display:none; border-top:1px solid #222; padding-top:15px;">
+            <button class="btn" style="background:#ff4444; color:#fff" onclick="adminMute()">MUTE USER</button>
         </div>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar">
-        <div style="padding:40px 25px; border-bottom:1px solid var(--brd);">
-            <div id="my-nick" style="font-weight:900; color:var(--p); font-size:18px;">@admin</div>
-            <div id="my-stars" style="font-size:16px; margin-top:5px; opacity:0.8;">0 ⭐</div>
+        <div style="padding:30px 20px; border-bottom:1px solid var(--brd);">
+            <div id="ui-nick" style="font-weight:900; color:var(--p); font-size:18px;"></div>
+            <div id="ui-stars" style="font-size:14px; opacity:0.7;"></div>
         </div>
-        <nav style="flex:1; padding-top:20px;">
-            <div class="nav-link active" onclick="tab('chat', this)">📡 Global Chat</div>
-            <div class="nav-link" onclick="tab('market', this)">💎 Fragment (Free)</div>
-            <div class="nav-link" onclick="tab('bank', this)">🏦 Bank</div>
-            <div id="adm-nav" class="nav-link" style="display:none; color:#ff4444;" onclick="tab('admin', this)">⚡ Root Control</div>
+        <nav style="flex:1; padding-top:10px;">
+            <div class="nav-item active" onclick="setTab('chat', this)">📡 CHAT</div>
+            <div class="nav-item" onclick="setTab('market', this)">💎 MINT (FREE)</div>
+            <div class="nav-item" onclick="setTab('bank', this)">🏦 BANK</div>
+            <div id="ui-admin-nav" class="nav-item" style="display:none; color:#ff4444;" onclick="setTab('admin', this)">⚡ ROOT</div>
         </nav>
-        <div style="padding:20px;"><button class="btn" style="background:#111; color:#555;" onclick="location.reload()">DISCONNECT</button></div>
+        <div style="padding:20px;"><button class="btn" style="background:#111; color:#444;" onclick="location.reload()">LOGOUT</button></div>
     </aside>
 
     <main class="viewport">
-        <div id="view-chat" class="tab-content active" style="display:flex; flex-direction:column; height:100%;">
-            <div id="messages"></div>
-            <div style="padding:20px; border-top:1px solid var(--brd); display:flex; gap:10px; background:var(--side);">
-                <input type="text" id="chat-i" placeholder="Message..." onkeypress="if(event.key==='Enter') sendMsg()" style="margin:0;">
-                <button class="btn" onclick="sendMsg()" style="width:80px;">➔</button>
+        <div id="tab-chat" class="tab" style="display:flex; flex-direction:column; height:100%;">
+            <div id="chat-box"></div>
+            <div style="padding:20px; background:var(--side); display:flex; gap:10px;">
+                <input type="text" id="msg-i" placeholder="Command..." style="margin:0;" onkeypress="if(event.key==='Enter') send()">
+                <button class="btn" onclick="send()" style="width:60px;">➔</button>
             </div>
         </div>
 
-        <div id="view-market" class="tab-content" style="display:none; padding:40px;">
-            <h1 style="font-family:'Orbitron'; color:var(--p);">FRAGMENT_MARKET</h1>
-            <div style="background:var(--side); padding:30px; border-radius:20px; border:1px solid var(--brd);">
-                <h3>CLAIM NFT USERNAME</h3>
-                <p style="font-size:12px; color:var(--muted);">Minting is currently: <b style="color:#00ff88;">FREE</b></p>
-                <input type="text" id="new-nick-i" placeholder="New @username...">
-                <button class="btn" onclick="mintNick()">CONFIRM MINT</button>
-            </div>
+        <div id="tab-market" class="tab" style="display:none; padding:40px;">
+            <h2>FREE USERNAME MINT</h2>
+            <input type="text" id="mint-i" placeholder="New @username...">
+            <button class="btn" onclick="mint()">CLAIM FOR 0 ⭐</button>
         </div>
 
-        <div id="view-bank" class="tab-content" style="display:none; padding:40px;">
-            <h1 style="font-family:'Orbitron'; color:var(--p);">BANK_TERMINAL</h1>
-            <div style="background:var(--side); padding:30px; border-radius:20px; border:1px solid var(--brd);">
-                <h3>REDEEM CHECK</h3>
-                <input type="text" id="check-i" placeholder="MOPSO_SONIX_XXXXXXXXX">
-                <button class="btn" onclick="redeemCheck()">ACTIVATE</button>
-            </div>
+        <div id="tab-bank" class="tab" style="display:none; padding:40px;">
+            <h2>REDEEM CHECK</h2>
+            <input type="text" id="check-i" placeholder="MOPSO_SONIX_XXXXX">
+            <button class="btn" onclick="redeem()">ACTIVATE</button>
         </div>
 
-        <div id="view-admin" class="tab-content" style="display:none; padding:40px;">
-            <h1 style="color:#ff4444; font-family:'Orbitron';">ROOT_TERMINAL</h1>
-            <div style="background:var(--side); padding:30px; border-radius:20px; border:1px solid #ff444444;">
-                <h3>CREATE CHECK</h3>
-                <input type="number" id="gen-amt" placeholder="Stars Amount">
-                <button class="btn" style="background:#ff4444; color:#fff;" onclick="genCheck()">GENERATE</button>
-                <div id="gen-res" style="margin-top:20px; font-family:'JetBrains Mono'; color:var(--p); word-break:break-all;"></div>
-            </div>
+        <div id="tab-admin" class="tab" style="display:none; padding:40px;">
+            <h2 style="color:#ff4444;">GENERATE CHECK</h2>
+            <input type="number" id="gen-a" placeholder="Amount">
+            <button class="btn" style="background:#ff4444; color:#fff;" onclick="gen()">GENERATE</button>
+            <div id="gen-res" style="margin-top:20px; color:var(--p); font-family:monospace;"></div>
         </div>
     </main>
 </div>
@@ -129,126 +115,122 @@
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    let user = null;
-    let target = null;
+    let currUser = null;
+    let viewTarget = null;
 
-    async function auth() {
-        const uInput = document.getElementById('a-u').value.trim();
-        const pInput = document.getElementById('a-p').value.trim();
-        if(!uInput || !pInput) return;
+    async function login() {
+        const u = document.getElementById('log-u').value.trim();
+        const p = document.getElementById('log-p').value.trim();
+        if(!u || !p) return;
+        const nick = u.startsWith('@') ? u : '@' + u;
 
-        const nick = uInput.startsWith('@') ? uInput : '@' + uInput;
-        let { data: ex } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
+        let { data: user } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
 
-        if(!ex) {
-            const { data: n } = await sb.from('users').insert([{ username: nick, password: pInput, stars: 1000, role: nick === '@admin' ? 'admin' : 'user' }]).select().single();
-            user = n;
+        if(!user) {
+            const { data: newUser } = await sb.from('users').insert([{ username: nick, password: p, stars: 1000, role: nick === '@admin' ? 'admin' : 'user' }]).select().single();
+            currUser = newUser;
         } else {
-            if(ex.password !== pInput) return alert("WRONG PASSWORD");
-            user = ex;
+            if(user.password !== p) return alert("BAD PASS");
+            currUser = user;
         }
 
-        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('auth-scr').style.display = 'none';
         document.getElementById('app').style.display = 'flex';
-        if(user.role === 'admin') document.getElementById('adm-nav').style.display = 'block';
+        if(currUser.role === 'admin') document.getElementById('ui-admin-nav').style.display = 'block';
         
-        startSystem();
+        init();
     }
 
-    function startSystem() {
+    function init() {
         updateUI();
-        syncChat();
-        
-        sb.channel('global').on('postgres_changes', { event: '*', schema: 'public' }, (pl) => {
-            if(pl.table === 'messages') syncChat();
-            if(pl.table === 'users' && pl.new.id === user.id) { user = pl.new; updateUI(); }
+        loadChat();
+        sb.channel('any').on('postgres_changes', { event: '*', schema: 'public' }, (p) => {
+            if(p.table === 'messages') loadChat();
+            if(p.table === 'users' && p.new.id === currUser.id) { currUser = p.new; updateUI(); }
         }).subscribe();
     }
 
-    async function syncChat() {
+    async function loadChat() {
         const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true });
-        const box = document.getElementById('messages');
-        box.innerHTML = '';
+        const container = document.getElementById('chat-box');
+        container.innerHTML = '';
         msgs?.forEach(m => {
-            const isMe = m.username === user.username;
-            box.innerHTML += `
-                <div class="msg ${isMe ? 'me' : ''}" onclick="openProfile('${m.username}')">
-                    <div class="msg-u">${m.username}</div>
-                    <div>${m.text}</div>
+            const isMe = m.username === currUser.username;
+            container.innerHTML += `
+                <div class="m-wrap ${isMe ? 'me' : ''}" onclick="openProfile('${m.username}')">
+                    <div class="u-label">${m.username}</div>
+                    <div class="bubble">${m.text}</div>
                 </div>`;
         });
-        box.scrollTop = box.scrollHeight;
+        container.scrollTop = container.scrollHeight;
     }
 
-    async function sendMsg() {
-        const i = document.getElementById('chat-i');
-        if(!i.value.trim() || user.is_muted) return;
-        const txt = i.value; i.value = '';
-        await sb.from('messages').insert({ username: user.username, text: txt });
+    async function send() {
+        const input = document.getElementById('msg-i');
+        if(!input.value.trim() || currUser.is_muted) return;
+        const text = input.value;
+        input.value = '';
+        await sb.from('messages').insert({ username: currUser.username, text: text });
     }
 
     async function openProfile(nick) {
         const { data: p } = await sb.from('users').select('*').eq('username', nick).single();
         if(!p) return;
-        target = p;
-        document.getElementById('p-nick').innerText = p.username;
-        document.getElementById('p-stars').innerText = p.stars + " ⭐";
-        document.getElementById('p-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${p.username}`;
-        document.getElementById('p-admin-tools').style.display = user.role === 'admin' ? 'block' : 'none';
-        document.getElementById('profile-modal').style.display = 'flex';
+        viewTarget = p;
+        document.getElementById('m-nick').innerText = p.username;
+        document.getElementById('m-stars').innerText = p.stars + " ⭐";
+        document.getElementById('m-role').innerText = p.role;
+        document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${p.username}`;
+        document.getElementById('m-admin-tools').style.display = currUser.role === 'admin' ? 'block' : 'none';
+        document.getElementById('prof-modal').style.display = 'flex';
     }
 
-    async function mintNick() {
-        const n = document.getElementById('new-nick-i').value.trim();
-        const formatted = n.startsWith('@') ? n : '@' + n;
-        
+    async function mint() {
+        const newNick = document.getElementById('mint-i').value.trim();
+        const formatted = newNick.startsWith('@') ? newNick : '@' + newNick;
         const { data: ex } = await sb.from('users').select('*').eq('username', formatted).maybeSingle();
-        if(ex) return notify("TAKEN", "#ff4444");
-
-        await sb.from('users').update({ username: formatted }).eq('id', user.id);
-        notify("USERNAME MINTED!");
-        setTimeout(() => location.reload(), 1500);
+        if(ex) return toast("TAKEN!");
+        await sb.from('users').update({ username: formatted }).eq('id', currUser.id);
+        toast("MINTED!"); setTimeout(() => location.reload(), 1000);
     }
 
-    async function redeemCheck() {
+    async function redeem() {
         const code = document.getElementById('check-i').value.trim();
         const { data: c } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-        if(!c) return notify("INVALID CHECK", "#ff4444");
-
+        if(!c) return toast("INVALID!");
         await sb.from('checks').update({ is_used: true }).eq('id', c.id);
-        await sb.from('users').update({ stars: user.stars + c.amount }).eq('id', user.id);
-        notify("RECEIVED " + c.amount + " ⭐");
+        await sb.from('users').update({ stars: currUser.stars + c.amount }).eq('id', currUser.id);
+        toast("SUCCESS!");
     }
 
-    async function genCheck() {
-        const amt = document.getElementById('gen-amt').value;
-        const code = "MOPSO_SONIX_" + Math.floor(Math.random() * 1000000000);
-        await sb.from('checks').insert({ code, amount: amt });
+    async function gen() {
+        const a = document.getElementById('gen-a').value;
+        const code = "MOPSO_SONIX_" + Math.floor(Math.random() * 1e10);
+        await sb.from('checks').insert({ code, amount: a });
         document.getElementById('gen-res').innerText = code;
     }
 
-    async function muteUser() {
-        if(!target) return;
-        await sb.from('users').update({ is_muted: true }).eq('id', target.id);
-        notify(target.username + " MUTED");
+    async function adminMute() {
+        if(!viewTarget) return;
+        await sb.from('users').update({ is_muted: true }).eq('id', viewTarget.id);
+        toast("MUTED!");
     }
 
     function updateUI() {
-        document.getElementById('my-nick').innerText = user.username;
-        document.getElementById('my-stars').innerText = user.stars.toLocaleString() + " ⭐";
+        document.getElementById('ui-nick').innerText = currUser.username;
+        document.getElementById('ui-stars').innerText = currUser.stars + " ⭐";
     }
 
-    function tab(name, el) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById('view-' + name).style.display = name === 'chat' ? 'flex' : 'block';
+    function setTab(name, el) {
+        document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('tab-' + name).style.display = name === 'chat' ? 'flex' : 'block';
         el.classList.add('active');
     }
 
-    function notify(m, bg = "#ff9000") {
-        const t = document.getElementById('toast');
-        t.innerText = m; t.style.background = bg;
-        t.style.transform = "translateX(-50%) translateY(0)";
+    function toast(m) {
+        const t = document.getElementById('notify');
+        t.innerText = m; t.style.transform = "translateX(-50%) translateY(0)";
         setTimeout(() => t.style.transform = "translateX(-50%) translateY(-150px)", 3000);
     }
 </script>
