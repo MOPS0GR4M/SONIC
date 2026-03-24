@@ -3,262 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM V37 | DEEP_CORE_OS</title>
+    <title>MOPSOGRAM V38 | MESSENGER ELITE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;500;800&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СТИЛИ */
         :root {
-            --p: #ff9000; --p-low: rgba(255, 144, 0, 0.1);
-            --bg: #020202; --side: #070707; --panel: #0d0d0d;
-            --brd: #1a1a1a; --brd-active: #333;
-            --text: #ffffff; --text-dim: #555;
-            --red: #ff3333; --green: #00ff88; --blue: #0088ff;
-            --font-main: 'Inter', sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-            --font-ui: 'Orbitron', sans-serif;
+            --p: #ff9000; --p-dark: #cc7400; --p-glow: rgba(255, 144, 0, 0.2);
+            --bg: #050505; --side: #0a0a0a; --chat: #020202;
+            --brd: #1a1a1a; --text: #eee; --dim: #666;
+            --red: #ff3333; --green: #00ff88;
         }
 
-        * { box-sizing: border-box; outline: none; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        
-        body, html { 
-            margin: 0; padding: 0; height: 100vh; background: var(--bg); 
-            color: var(--text); font-family: var(--font-main); overflow: hidden; 
-        }
+        * { box-sizing: border-box; outline: none; transition: all 0.15s ease; }
+        body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* ТЕРМИНАЛЬНЫЕ ЭФФЕКТЫ */
-        .scanline {
-            width: 100%; height: 2px; background: rgba(255, 144, 0, 0.03);
-            position: fixed; z-index: 10000; pointer-events: none;
-            animation: scan 4s linear infinite;
-        }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
-
-        /* СКРОЛЛБАРЫ */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--brd); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--p); }
-
-        /* ОСНОВНАЯ СЕТКА */
+        /* СКЕЛЕТ ПРИЛОЖЕНИЯ */
         #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
 
-        /* САЙДБАР */
+        /* ЛЕВАЯ ПАНЕЛЬ (СПИСОК КОНТАКТОВ/КАНАЛОВ) */
         .sidebar { 
-            width: 350px; background: var(--side); border-right: 1px solid var(--brd);
-            display: flex; flex-direction: column; z-index: 100;
+            width: 320px; background: var(--side); border-right: 1px solid var(--brd);
+            display: flex; flex-direction: column; 
         }
 
-        .profile-module {
-            padding: 40px 30px; border-bottom: 1px solid var(--brd);
-            background: linear-gradient(180deg, #0a0a0a 0%, transparent 100%);
+        .side-head { padding: 25px; border-bottom: 1px solid var(--brd); background: #0c0c0c; }
+        .user-card { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .av-small { width: 45px; height: 45px; border-radius: 14px; border: 2px solid var(--p); }
+        .u-info b { font-family: 'Orbitron'; font-size: 13px; color: var(--p); }
+        .u-info span { display: block; font-size: 11px; color: var(--green); font-weight: 800; }
+
+        .nav-menu { flex: 1; overflow-y: auto; padding: 10px 0; }
+        .nav-btn {
+            padding: 15px 25px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+            font-size: 13px; font-weight: 700; color: var(--dim); border-left: 3px solid transparent;
         }
-        .av-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
-        .av-img { 
-            width: 100%; height: 100%; border-radius: 40px; border: 2px solid var(--p);
-            box-shadow: 0 0 25px var(--p-low); padding: 5px; background: #000;
+        .nav-btn:hover { background: rgba(255,255,255,0.03); color: #fff; }
+        .nav-btn.active { color: var(--p); background: var(--p-glow); border-left-color: var(--p); }
+
+        /* ЦЕНТРАЛЬНАЯ ЧАСТЬ (ЧАТ) */
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--chat); position: relative; }
+        
+        .chat-head { 
+            padding: 15px 30px; border-bottom: 1px solid var(--brd); 
+            display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.5);
         }
-        .status-orb {
-            position: absolute; bottom: 5px; right: 5px; width: 20px; height: 20px;
-            background: var(--green); border-radius: 50%; border: 4px solid var(--side);
+        .chat-head h3 { font-family: 'Orbitron'; font-size: 14px; letter-spacing: 1px; }
+
+        #msg-flow { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* СООБЩЕНИЯ */
+        .m-wrap { display: flex; gap: 12px; max-width: 80%; animation: msgIn 0.2s ease; }
+        .m-wrap.is-me { align-self: flex-end; flex-direction: row-reverse; }
+        
+        .m-av { width: 35px; height: 35px; border-radius: 10px; border: 1px solid var(--brd); flex-shrink: 0; }
+        .m-content { display: flex; flex-direction: column; gap: 4px; }
+        .m-nick { font-size: 10px; font-weight: 900; color: var(--dim); font-family: 'JetBrains Mono'; }
+        .is-me .m-nick { text-align: right; color: var(--p); }
+        
+        .m-text { 
+            padding: 12px 18px; border-radius: 18px; background: #111; border: 1px solid var(--brd);
+            font-size: 14px; line-height: 1.5; color: #ddd; word-break: break-word;
         }
+        .is-me .m-text { background: #1a1500; border-color: var(--p-dark); color: #fff; border-bottom-right-radius: 4px; }
+        .is-other .m-text { border-bottom-left-radius: 4px; }
 
-        .user-stats { margin-top: 15px; text-align: center; }
-        .stat-line { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; margin-top: 5px; color: var(--text-dim); }
+        .m-titles { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
+        .t-badge { font-size: 8px; padding: 2px 6px; border-radius: 4px; background: #222; color: #888; font-weight: 900; text-transform: uppercase; }
 
-        /* НАВИГАЦИЯ */
-        .nav-list { flex: 1; padding: 20px 0; overflow-y: auto; }
-        .nav-link {
-            padding: 18px 35px; cursor: pointer; color: var(--text-dim);
-            font-family: var(--font-ui); font-size: 11px; letter-spacing: 2px;
-            display: flex; align-items: center; gap: 15px; border-left: 4px solid transparent;
+        @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ПОЛЕ ВВОДА */
+        .input-box { padding: 20px 30px; border-top: 1px solid var(--brd); background: var(--side); display: flex; gap: 15px; }
+        .input-box input { 
+            flex: 1; background: #000; border: 1px solid #222; padding: 15px 20px; 
+            border-radius: 12px; color: #fff; font-size: 14px; 
         }
-        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.02); }
-        .nav-link.active { 
-            color: var(--p); border-left-color: var(--p); background: var(--p-low);
-            text-shadow: 0 0 10px var(--p-low);
+        .input-box input:focus { border-color: var(--p); }
+
+        /* UI ЭЛЕМЕНТЫ */
+        .btn { 
+            background: var(--p); color: #000; border: none; padding: 12px 25px; 
+            border-radius: 10px; font-family: 'Orbitron'; font-weight: 900; font-size: 11px; cursor: pointer; 
         }
+        .btn:hover { transform: scale(1.03); background: #fff; }
+        .btn-red { background: var(--red); color: #fff; }
 
-        /* ОСНОВНОЙ ВЬЮПОРТ */
-        .main-stage { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+        /* ЭКРАНЫ */
+        .screen { display: none; padding: 50px; height: 100%; overflow-y: auto; }
+        .screen.active { display: block; }
+        .card { background: #0c0c0c; border: 1px solid var(--brd); padding: 30px; border-radius: 20px; margin-bottom: 25px; }
 
-        /* ЧАТ-ИНТЕРФЕЙС */
-        #chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-        #message-stream { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
-
-        .msg-node { display: flex; flex-direction: column; gap: 8px; animation: slideIn 0.3s ease-out; max-width: 85%; }
-        .msg-node.own { align-self: flex-end; align-items: flex-end; }
-
-        .msg-meta { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 10px; }
-        .msg-body { 
-            padding: 16px 24px; border-radius: 20px; background: var(--panel); 
-            border: 1px solid var(--brd); font-size: 15px; line-height: 1.6; color: #ddd;
-        }
-        .own .msg-body { border-color: var(--p); background: #1a1400; color: #fff; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* ВВОД СООБЩЕНИЯ */
-        .input-dock {
-            padding: 30px; background: var(--side); border-top: 1px solid var(--brd);
-            display: flex; gap: 15px; align-items: center;
-        }
-        .input-dock input {
-            flex: 1; background: #000; border: 1px solid var(--brd-active);
-            padding: 18px 25px; border-radius: 18px; color: #fff; font-family: var(--font-mono);
-        }
-        .input-dock input:focus { border-color: var(--p); box-shadow: 0 0 15px var(--p-low); }
-
-        /* БЕЙДЖИ И ТИТУЛЫ */
-        .label { 
-            padding: 3px 8px; border-radius: 5px; font-size: 9px; 
-            font-weight: 900; text-transform: uppercase; font-family: var(--font-mono);
-        }
-        .label-p { background: var(--p); color: #000; }
-        .label-admin { background: var(--red); color: #fff; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
-        .label-sec { background: #222; color: #888; border: 1px solid #333; }
-
-        /* ВКЛАДКИ (ТАБЫ) */
-        .content-tab { display: none; padding: 60px; height: 100%; overflow-y: auto; }
-        .content-tab.active { display: block; }
-
-        /* АДМИН ПАНЕЛЬ (ROOT) */
-        .card { background: var(--panel); border: 1px solid var(--brd); border-radius: 25px; padding: 40px; margin-bottom: 30px; }
-        .btn-core {
-            padding: 16px 30px; border: none; border-radius: 15px; cursor: pointer;
-            font-family: var(--font-ui); font-weight: 900; text-transform: uppercase;
-            letter-spacing: 1px; font-size: 12px;
-        }
-        .btn-p { background: var(--p); color: #000; }
-        .btn-danger { background: var(--red); color: #fff; }
-        .btn-p:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--p-low); }
-
-        /* УВЕДОМЛЕНИЯ */
-        #system-notifier {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            background: var(--p); color: #000; padding: 15px 45px; border-radius: 50px;
-            font-family: var(--font-ui); font-weight: 900; z-index: 100000;
-            transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        /* МУТ ЛОКЕР */
+        #mute-overlay { 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; backdrop-filter: blur(10px);
         }
 
-        /* МУТ-ЗАГЛУШКА */
-        .restrict-layer {
-            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 500; display: none; align-items: center; justify-content: center;
-            backdrop-filter: blur(10px); color: var(--red); text-align: center;
-        }
+        /* AUTH */
+        #auth-scr { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; align-items: center; justify-content: center; }
+        .auth-box { width: 340px; text-align: center; }
 
-        /* AUTH SCREEN */
-        #auth-portal {
-            position: fixed; inset: 0; background: #000; z-index: 99999;
-            display: flex; align-items: center; justify-content: center;
+        #notify { 
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); 
+            background: var(--p); color: #000; padding: 12px 30px; border-radius: 40px; 
+            font-weight: 900; z-index: 6000; transition: 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
-        .portal-box { width: 380px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div class="scanline"></div>
-<div id="system-notifier">CONNECTED</div>
+<div id="notify">SYSTEM_READY</div>
 
-<div id="auth-portal">
-    <div class="portal-box">
-        <h1 style="font-family: var(--font-ui); font-size: 50px; color: var(--p); margin: 0; letter-spacing: 10px;">MOPSO</h1>
-        <p style="color: var(--text-dim); font-size: 11px; margin-bottom: 50px; letter-spacing: 5px;">CORE ENGINE V37.0</p>
-        
-        <input type="text" id="auth-user" placeholder="USER_IDENTITY" style="margin-bottom: 15px; width: 100%; padding: 20px; background: #080808; border: 1px solid #1a1a1a; border-radius: 15px; color: #fff; font-family: var(--font-mono);">
-        <input type="password" id="auth-pass" placeholder="ACCESS_KEY" style="margin-bottom: 30px; width: 100%; padding: 20px; background: #080808; border: 1px solid #1a1a1a; border-radius: 15px; color: #fff; font-family: var(--font-mono);">
-        
-        <button class="btn-core btn-p" onclick="App.login()" style="width: 100%;">INITIALIZE_SESSION</button>
+<div id="auth-scr">
+    <div class="auth-box">
+        <h1 style="font-family:'Orbitron'; color:var(--p); font-size:40px; margin-bottom:10px;">MOPSO</h1>
+        <p style="color:var(--dim); font-size:10px; letter-spacing:4px; margin-bottom:40px;">QUANTUM_MESSENGER_V38</p>
+        <input type="text" id="l-u" placeholder="IDENTITY_LOGIN" style="margin-bottom:10px; width:100%; padding:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:12px; color:#fff;">
+        <input type="password" id="l-p" placeholder="ACCESS_KEY" style="margin-bottom:20px; width:100%; padding:18px; background:#0a0a0a; border:1px solid #1a1a1a; border-radius:12px; color:#fff;">
+        <button class="btn" onclick="Core.login()" style="width:100%;">AUTHORIZE</button>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar">
-        <div class="profile-module">
-            <div class="av-container">
-                <img id="ui-avatar" class="av-img" src="">
-                <div id="ui-status-orb" class="status-orb"></div>
+        <div class="side-head">
+            <div class="user-card">
+                <img id="u-av" class="av-small" src="">
+                <div class="u-info">
+                    <b id="u-name">@USER</b>
+                    <span id="u-stars">0 ⭐</span>
+                </div>
             </div>
-            <div id="ui-nick-display" style="text-align:center; font-family: var(--font-ui); color: var(--p); font-size: 16px; font-weight: 900;"></div>
-            
-            <div class="user-stats">
-                <div class="stat-line"><span>STARS:</span><span id="ui-stars" style="color:var(--green)">0</span></div>
-                <div class="stat-line"><span>RANK:</span><span id="ui-rank" style="color:var(--blue)">BRONZE</span></div>
-                <div class="stat-line"><span>XP:</span><span id="ui-xp">0</span></div>
-            </div>
+            <button class="btn" style="width:100%; background:#1a1a1a; color:#888;" onclick="location.reload()">TERMINATE_SESSION</button>
         </div>
 
-        <div class="nav-list">
-            <div class="nav-link active" onclick="App.switchTab('chat', this)">📡 TERMINAL_FEED</div>
-            <div class="nav-link" onclick="App.switchTab('identity', this)">👤 IDENTITY_VAULT</div>
-            <div class="nav-link" onclick="App.switchTab('market', this)">🔨 BLACK_MARKET</div>
-            <div id="admin-nav-item" class="nav-link" style="display:none; color: var(--red);" onclick="App.switchTab('root', this)">⚡ ROOT_SYSTEM</div>
-        </div>
-
-        <div style="padding: 25px; border-top: 1px solid var(--brd);">
-            <button class="btn-core" style="background: transparent; border: 1px solid #222; color: #444; width: 100%;" onclick="location.reload()">LOGOUT_SYSTEM</button>
-        </div>
+        <nav class="nav-menu">
+            <div class="nav-btn active" onclick="Core.tab('chat', this)">💬 GLOBAL_CHAT</div>
+            <div class="nav-btn" onclick="Core.tab('vault', this)">🔐 VAULT & TITLES</div>
+            <div class="nav-btn" onclick="Core.tab('checks', this)">💎 REDEEM_CHECKS</div>
+            <div id="adm-link" class="nav-btn" style="display:none; color:var(--red);" onclick="Core.tab('admin', this)">⚡ ROOT_CONTROL</div>
+        </nav>
     </aside>
 
-    <main class="main-stage">
+    <main class="chat-area">
         
-        <div id="tab-chat" class="content-tab active" style="padding: 0; display: flex; flex-direction: column;">
-            <div id="restrict-msg" class="restrict-layer">
-                <div>
-                    <h1 style="font-size: 40px;">SESSION_SUSPENDED</h1>
-                    <p>ТВОЙ ДОСТУП В ТЕРМИНАЛ ОГРАНИЧЕН АДМИНИСТРАТОРОМ</p>
-                </div>
+        <div id="scr-chat" class="screen active" style="padding:0; display:flex; flex-direction:column;">
+            <div id="mute-overlay">
+                <h1 style="color:var(--red); font-family:'Orbitron';">ACCESS_DENIED</h1>
+                <p>ТВОЙ ГОЛОС В ТЕРМИНАЛЕ ЗАБЛОКИРОВАН</p>
             </div>
-            <div id="message-stream"></div>
-            <div class="input-dock">
-                <input type="text" id="chat-input" placeholder="READY_FOR_INPUT..." onkeypress="if(event.key==='Enter') App.sendMessage()">
-                <button class="btn-core btn-p" onclick="App.sendMessage()" style="width: 80px;">➜</button>
+            <div class="chat-head">
+                <h3>#GLOBAL_FEED</h3>
+                <div style="font-size:10px; color:var(--green);" id="online-counter">ENCRYPTED_CONNECTION</div>
+            </div>
+            <div id="msg-flow"></div>
+            <div class="input-box">
+                <input type="text" id="m-in" placeholder="TYPE_MESSAGE..." onkeypress="if(event.key==='Enter') Core.send()">
+                <button class="btn" onclick="Core.send()">SEND</button>
             </div>
         </div>
 
-        <div id="tab-identity" class="content-tab">
-            <h1>IDENTITY_VAULT</h1>
+        <div id="scr-vault" class="screen">
+            <h1 style="font-family:'Orbitron'; margin-bottom:30px;">IDENTITY_VAULT</h1>
             <div class="card">
-                <h3>MANAGE_TITLES</h3>
-                <p style="color: var(--text-dim); font-size: 12px; margin-bottom: 20px;">Добавляй новые приставки к своему имени. Они будут видны в каждом твоем сообщении.</p>
-                <input type="text" id="new-title-input" placeholder="e.g. pavlin, rich, boss" style="background:#000; border:1px solid #222; padding:15px; width:100%; color:#fff; border-radius:12px; margin-bottom:15px;">
-                <button class="btn-core btn-p" onclick="App.addTitle()">MINT_NEW_TITLE</button>
-                <div id="identity-badges" style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;"></div>
-            </div>
-        </div>
-
-        <div id="tab-market" class="content-tab">
-            <h1>BLACK_MARKET_AUCTION</h1>
-            <div class="card" style="text-align: center;">
-                <div style="color: var(--red); font-family: var(--font-ui); font-size: 12px; margin-bottom: 10px;">AUCTION_ACTIVE</div>
-                <h2 id="auc-item-name" style="font-size: 40px; margin-bottom: 10px;">@SUPREME</h2>
-                <div id="auc-current-price" style="font-size: 60px; color: var(--green); font-family: var(--font-ui); margin-bottom: 20px;">0 ⭐</div>
-                <p id="auc-leader" style="font-family: var(--font-mono); color: var(--text-dim);">LEADING_BY: SYSTEM</p>
-                
-                <div style="margin-top:40px; max-width: 300px; margin-left: auto; margin-right: auto;">
-                    <input type="number" id="bid-input" placeholder="MIN_STEP: 500" style="text-align: center; margin-bottom: 15px;">
-                    <button class="btn-core btn-p" style="width: 100%;" onclick="App.placeBid()">CONFIRM_BID</button>
+                <h3>ADD_NEW_TITLE</h3>
+                <p style="color:var(--dim); font-size:12px; margin-bottom:20px;">Новый ник будет добавлен в список твоих титулов.</p>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="t-in" placeholder="example: rich" style="flex:1;">
+                    <button class="btn" onclick="Core.addTitle()">MINT</button>
                 </div>
+                <div id="my-badges" style="margin-top:20px; display:flex; gap:8px; flex-wrap:wrap;"></div>
             </div>
         </div>
 
-        <div id="tab-root" class="content-tab">
-            <h1 style="color: var(--red);">ROOT_ACCESS_ONLY</h1>
+        <div id="scr-checks" class="screen">
+            <h1 style="font-family:'Orbitron'; margin-bottom:30px;">STARS_REDEEM</h1>
+            <div class="card">
+                <h3>ACTIVATE_CHECK</h3>
+                <input type="text" id="c-in" placeholder="MOPSO_XXXX_XXXX" style="width:100%; margin-bottom:15px;">
+                <button class="btn" onclick="Core.redeemCheck()" style="width:100%;">CLAIM_STARS</button>
+            </div>
+        </div>
+
+        <div id="scr-admin" class="screen">
+            <h1 style="color:var(--red); font-family:'Orbitron';">ROOT_OVERRIDE</h1>
             
-            <div class="card" style="border-color: var(--red);">
-                <h3>GLOBAL_WIPE</h3>
-                <p>Удалить все сообщения из базы данных и очистить чат у всех пользователей мгновенно.</p>
-                <button class="btn-core btn-danger" onclick="App.wipeDatabase()">EXECUTE_FULL_WIPE</button>
+            <div class="card" style="border-color:var(--red);">
+                <h3>GENERATE_ASSET_CHECK</h3>
+                <p>Создать чек на 50,000 звезд.</p>
+                <button class="btn" onclick="Core.genCheck()" style="width:100%;">CREATE_50K_CHECK</button>
+                <div id="gen-out" style="margin-top:15px; color:var(--p); font-family:monospace; text-align:center; font-weight:bold;"></div>
             </div>
 
             <div class="card">
-                <h3>USER_RESTRICTION</h3>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="admin-target-user" placeholder="@username" style="flex:1;">
-                    <button class="btn-core" style="background: #222; color: #fff;" onclick="App.toggleMute()">TOGGLE_MUTE</button>
+                <h3>USER_RESTRICTION_ENGINE</h3>
+                <input type="text" id="adm-u" placeholder="@target_nick" style="width:100%; margin-bottom:10px;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <button class="btn btn-red" onclick="Core.toggleMute()">MUTE / UNMUTE</button>
+                    <button class="btn" style="background:#222; color:#fff;" onclick="Core.wipeMessages()">WIPE_HISTORY</button>
                 </div>
             </div>
         </div>
@@ -267,222 +212,187 @@
 </div>
 
 <script>
-    /* MOPSOGRAM CORE ENGINE
-       VERSION: 37.0
-       MODULE-BASED STRUCTURE
+    /* MOPSOGRAM CORE V38
+       HANDLING: REALTIME, AUTH, TITLES, CHECKS, MUTES
     */
 
     const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    const App = {
-        user: null,
-        activeTab: 'chat',
+    const Core = {
+        me: null,
 
-        // 1. АВТОРИЗАЦИЯ
+        // 1. LOGIN
         async login() {
-            const u = document.getElementById('auth-user').value.trim();
-            const p = document.getElementById('auth-pass').value.trim();
+            const u = document.getElementById('l-u').value.trim();
+            const p = document.getElementById('l-p').value.trim();
             if(!u) return;
-
             const nick = u.startsWith('@') ? u : '@' + u;
+
+            let { data: user } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
             
-            try {
-                let { data: user, error } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
-                
-                if(!user) {
-                    const { data: n } = await sb.from('users').insert([{
-                        username: nick, password: p, stars: 1000, 
-                        role: nick === '@admin' ? 'admin' : 'user',
-                        titles: []
-                    }]).select().single();
-                    this.user = n;
-                } else {
-                    if(user.password !== p) return this.notify("ACCESS_DENIED: WRONG_KEY", "red");
-                    this.user = user;
+            if(!user) {
+                const { data: n } = await sb.from('users').insert([{
+                    username: nick, password: p, stars: 1000, 
+                    role: nick === '@admin' ? 'admin' : 'user', titles: []
+                }]).select().single();
+                this.me = n;
+            } else {
+                if(user.password !== p) return this.toast("WRONG_ACCESS_KEY", "red");
+                this.me = user;
+            }
+
+            document.getElementById('auth-scr').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            if(this.me.role === 'admin') document.getElementById('adm-link').style.display = 'flex';
+
+            this.sync();
+            this.loadChat();
+            this.updateUI();
+            this.toast("ENCRYPTION_ESTABLISHED");
+        },
+
+        // 2. REALTIME SYNC
+        sync() {
+            // Сообщения (Insert & Delete)
+            sb.channel('msgs').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, (pl) => {
+                if(pl.event === 'INSERT') this.renderMsg(pl.new);
+                if(pl.event === 'DELETE') {
+                    document.getElementById('msg-flow').innerHTML = '';
+                    this.toast("HISTORY_WIPED_BY_ROOT");
                 }
+            }).subscribe();
 
-                document.getElementById('auth-portal').style.display = 'none';
-                document.getElementById('app').style.display = 'flex';
-                
-                if(this.user.role === 'admin') document.getElementById('admin-nav-item').style.display = 'flex';
-
-                this.initRealtime();
-                this.loadMessages();
+            // Профиль (Мут, Звезды, Ники)
+            sb.channel('me').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${this.me.id}` }, (pl) => {
+                this.me = pl.new;
                 this.updateUI();
-                this.notify("IDENTITY_VERIFIED");
-
-            } catch (err) { this.notify("CORE_ERROR: " + err.message, "red"); }
+            }).subscribe();
         },
 
-        // 2. РЕАЛТАЙМ КАНАЛЫ (FIXED)
-        initRealtime() {
-            // Глобальный канал для сообщений (Insert и Delete)
-            sb.channel('global-chat')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-                    this.renderMessage(payload.new);
-                })
-                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
-                    document.getElementById('message-stream').innerHTML = ''; // Моментальная чистка
-                    this.notify("SYSTEM_CLEARED_BY_ADMIN");
-                })
-                .subscribe();
-
-            // Канал для обновления данных текущего юзера
-            sb.channel('user-sync')
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${this.user.id}` }, (payload) => {
-                    this.user = payload.new;
-                    this.updateUI();
-                })
-                .subscribe();
-
-            // Канал аукциона
-            sb.channel('market-sync')
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'auction' }, (payload) => {
-                    this.updateAuctionUI(payload.new);
-                })
-                .subscribe();
-            
-            // Первичная подгрузка аукциона
-            this.updateAuctionUI();
+        // 3. CHAT LOGIC
+        async loadChat() {
+            const { data: msgs } = await sb.from('messages').select('*, users(*)').order('created_at', { ascending: true });
+            document.getElementById('msg-flow').innerHTML = '';
+            msgs?.forEach(m => this.renderMsg(m));
         },
 
-        // 3. ЧАТ ЛОГИКА
-        async loadMessages() {
-            const { data } = await sb.from('messages').select('*, users(*)').order('created_at', { ascending: true });
-            const box = document.getElementById('message-stream');
-            box.innerHTML = '';
-            data?.forEach(m => this.renderMessage(m));
-        },
-
-        renderMessage(m) {
-            const stream = document.getElementById('message-stream');
-            const isOwn = m.username === this.user.username;
+        renderMsg(m) {
+            const flow = document.getElementById('msg-flow');
+            const isMe = m.username === this.me.username;
             const author = m.users || { titles: [] };
             
-            let badges = `<span class="label label-p">${m.username}</span>`;
-            if(m.username === '@admin') badges += `<span class="label label-admin">ROOT</span>`;
-            author.titles?.forEach(t => {
-                badges += `<span class="label label-sec">@${t}</span>`;
-            });
+            const wrap = document.createElement('div');
+            wrap.className = `m-wrap ${isMe ? 'is-me' : 'is-other'}`;
+            
+            let titles = author.titles?.map(t => `<span class="t-badge">@${t}</span>`).join('') || '';
+            if(m.username === '@admin') titles += `<span class="t-badge" style="background:var(--red); color:#fff;">ROOT</span>`;
 
-            const node = document.createElement('div');
-            node.className = `msg-node ${isOwn ? 'own' : ''}`;
-            node.innerHTML = `
-                <div class="msg-meta">${badges}</div>
-                <div class="msg-body">${m.text}</div>
+            wrap.innerHTML = `
+                <img class="m-av" src="https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${m.username}">
+                <div class="m-content">
+                    <div class="m-nick">${m.username}</div>
+                    <div class="m-text">${m.text}</div>
+                    <div class="m-titles">${titles}</div>
+                </div>
             `;
-            stream.appendChild(node);
-            stream.scrollTop = stream.scrollHeight;
+            flow.appendChild(wrap);
+            flow.scrollTop = flow.scrollHeight;
         },
 
-        async sendMessage() {
-            if(this.user.is_muted) return this.notify("RESTRICTED: YOU_ARE_MUTED", "red");
-            
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if(!text) return;
+        async send() {
+            if(this.me.is_muted) return this.toast("YOU_ARE_MUTED", "red");
+            const i = document.getElementById('m-in');
+            if(!i.value.trim()) return;
 
-            input.value = '';
-            await sb.from('messages').insert({ 
-                username: this.user.username, 
-                text: text, 
-                user_id: this.user.id 
-            });
-            
-            // Добавляем XP за сообщение
-            await sb.from('users').update({ xp: (this.user.xp || 0) + 10 }).eq('id', this.user.id);
+            const txt = i.value;
+            i.value = '';
+            await sb.from('messages').insert({ username: this.me.username, text: txt, user_id: this.me.id });
         },
 
-        // 4. ТИТУЛЫ (IDENTITY)
+        // 4. VAULT (TITLES)
         async addTitle() {
-            const input = document.getElementById('new-title-input');
-            const val = input.value.trim().replace('@', '');
+            const i = document.getElementById('t-in');
+            const val = i.value.trim().replace('@', '');
             if(!val) return;
 
-            const newList = [...new Set([...(this.user.titles || []), val])];
-            const { error } = await sb.from('users').update({ titles: newList }).eq('id', this.user.id);
-            
+            const updated = [...new Set([...(this.me.titles || []), val])];
+            const { error } = await sb.from('users').update({ titles: updated }).eq('id', this.me.id);
             if(!error) {
-                this.notify("TITLE_MINTED_SUCCESSFULLY");
-                input.value = '';
+                this.toast("TITLE_ADDED");
+                i.value = '';
             }
         },
 
-        // 5. АУКЦИОН
-        async updateAuctionUI(data = null) {
-            if(!data) {
-                const { data: auc } = await sb.from('auction').select('*').eq('id', 1).single();
-                data = auc;
-            }
-            if(!data) return;
-            document.getElementById('auc-item-name').innerText = data.item_name;
-            document.getElementById('auc-current-price').innerText = data.current_bid.toLocaleString() + " ⭐";
-            document.getElementById('auc-leader').innerText = "LEADING_BY: " + data.bidder_name;
-        },
+        // 5. CHECKS SYSTEM
+        async redeemCheck() {
+            const code = document.getElementById('c-in').value.trim();
+            const { data: check } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
 
-        async placeBid() {
-            const amount = parseInt(document.getElementById('bid-input').value);
-            const { data: auc } = await sb.from('auction').select('*').eq('id', 1).single();
+            if(!check) return this.toast("INVALID_OR_USED_CHECK", "red");
+
+            // 1. Помечаем чек как использованный
+            await sb.from('checks').update({ is_used: true }).eq('id', check.id);
+            // 2. Начисляем звезды
+            await sb.from('users').update({ stars: this.me.stars + check.amount }).eq('id', this.me.id);
             
-            if(amount <= auc.current_bid) return this.notify("BID_TOO_LOW", "red");
-            if(this.user.stars < amount) return this.notify("NOT_ENOUGH_STARS", "red");
-
-            await sb.from('users').update({ stars: this.user.stars - amount }).eq('id', this.user.id);
-            await sb.from('auction').update({ current_bid: amount, bidder_name: this.user.username }).eq('id', 1);
-            this.notify("BID_PLACED");
+            this.toast(`REDEEMED ${check.amount} ⭐!`);
+            document.getElementById('c-in').value = '';
         },
 
-        // 6. ROOT УПРАВЛЕНИЕ (АДМИНКА)
-        async wipeDatabase() {
-            if(!confirm("ПОЛНАЯ ОЧИСТКА БАЗЫ ДАННЫХ? ЭТО НЕЛЬЗЯ ОТМЕНИТЬ.")) return;
-            const { error } = await sb.from('messages').delete().neq('username', 'system_node');
-            if(!error) this.notify("DATABASE_WIPED_BY_ROOT");
+        // 6. ADMIN ROOT
+        async genCheck() {
+            const code = "MOPSO_" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            const { error } = await sb.from('checks').insert({ code, amount: 50000, creator_id: this.me.id });
+            if(!error) {
+                document.getElementById('gen-out').innerText = code;
+                this.toast("CHECK_CREATED");
+            }
         },
 
         async toggleMute() {
-            const target = document.getElementById('admin-target-user').value.trim();
-            const { data: targetUser } = await sb.from('users').select('*').eq('username', target).single();
-            if(!targetUser) return this.notify("USER_NOT_FOUND", "red");
+            const target = document.getElementById('adm-u').value.trim();
+            const { data: u } = await sb.from('users').select('*').eq('username', target).single();
+            if(!u) return this.toast("USER_NOT_FOUND", "red");
 
-            await sb.from('users').update({ is_muted: !targetUser.is_muted }).eq('username', target);
-            this.notify(`MUTE_STATUS_CHANGED: ${target}`);
+            await sb.from('users').update({ is_muted: !u.is_muted }).eq('username', target);
+            this.toast(`MUTE_STATUS_UPDATED: ${target}`);
         },
 
-        // 7. UI ХЕЛПЕРЫ
+        async wipeMessages() {
+            if(!confirm("WIPE_ALL_HISTORY?")) return;
+            await sb.from('messages').delete().neq('username', 'system_node');
+        },
+
+        // 7. UI HELPERS
         updateUI() {
-            document.getElementById('ui-nick-display').innerText = this.user.username;
-            document.getElementById('ui-stars').innerText = this.user.stars.toLocaleString();
-            document.getElementById('ui-xp').innerText = this.user.xp || 0;
-            document.getElementById('ui-avatar').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${this.user.username}`;
+            document.getElementById('u-name').innerText = this.me.username;
+            document.getElementById('u-stars').innerText = this.me.stars.toLocaleString() + " ⭐";
+            document.getElementById('u-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${this.me.username}`;
             
-            // Обновляем бейджи в Vault
-            const badgeBox = document.getElementById('identity-badges');
-            badgeBox.innerHTML = this.user.titles?.map(t => `<span class="label label-sec">@${t}</span>`).join('') || '';
+            const badges = document.getElementById('my-badges');
+            badges.innerHTML = this.me.titles?.map(t => `<span class="t-badge" style="padding:5px 10px; font-size:10px;">@${t}</span>`).join('') || '';
 
-            // Проверка мута
-            document.getElementById('restrict-msg').style.display = this.user.is_muted ? 'flex' : 'none';
+            // MUTE LOCKER
+            document.getElementById('mute-overlay').style.display = this.me.is_muted ? 'flex' : 'none';
         },
 
-        switchTab(tabName, el) {
-            document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            
-            document.getElementById('tab-' + tabName).classList.add('active');
+        tab(id, el) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('scr-' + id).classList.add('active');
             el.classList.add('active');
-            this.activeTab = tabName;
         },
 
-        notify(msg, color = "orange") {
-            const n = document.getElementById('system-notifier');
-            n.innerText = msg;
-            n.style.background = color === "red" ? 'var(--red)' : 'var(--p)';
-            n.style.top = '25px';
-            setTimeout(() => n.style.top = '-100px', 3000);
+        toast(m, c=null) {
+            const n = document.getElementById('notify');
+            n.innerText = m;
+            n.style.background = c === 'red' ? 'var(--red)' : 'var(--p)';
+            n.style.transform = "translateX(-50%) translateY(30px)";
+            setTimeout(() => n.style.transform = "translateX(-50%) translateY(-100px)", 3000);
         }
     };
-
 </script>
 </body>
 </html>
