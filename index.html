@@ -3,493 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM ELITE | V33.0 FULL</title>
+    <title>MOPSOGRAM V37 | DEEP_CORE_OS</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;500;800&family=Inter:wght@300;400;700;900&display=swap" rel="stylesheet">
     
     <style>
+        /* ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И СТИЛИ */
         :root {
-            --p: #ff9000;
-            --bg: #000000;
-            --side: #080808;
-            --chat: #040404;
-            --brd: #1a1a1a;
-            --text: #ffffff;
-            --red: #ff3333;
-            --green: #00ff88;
+            --p: #ff9000; --p-low: rgba(255, 144, 0, 0.1);
+            --bg: #020202; --side: #070707; --panel: #0d0d0d;
+            --brd: #1a1a1a; --brd-active: #333;
+            --text: #ffffff; --text-dim: #555;
+            --red: #ff3333; --green: #00ff88; --blue: #0088ff;
+            --font-main: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-ui: 'Orbitron', sans-serif;
         }
 
-        * { 
-            box-sizing: border-box; 
-            outline: none; 
-            transition: all 0.2s ease;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100vh; 
-            background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Inter', sans-serif; 
-            overflow: hidden; 
-        }
-
-        /* Кнопки и Инпуты */
-        .btn { 
-            background: var(--p); 
-            border: none; 
-            padding: 16px; 
-            border-radius: 16px; 
-            font-weight: 900; 
-            cursor: pointer; 
-            color: #000; 
-            width: 100%; 
-            font-size: 13px; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-family: 'Orbitron';
-        }
-        .btn:hover { 
-            transform: translateY(-3px); 
-            box-shadow: 0 8px 25px rgba(255,144,0,0.4); 
-        }
-        .btn:active { transform: translateY(0); }
-        .btn-red { background: var(--red); color: #fff; }
-
-        input { 
-            background: #0f0f0f; 
-            border: 2px solid var(--brd); 
-            padding: 16px; 
-            border-radius: 16px; 
-            color: #fff; 
-            width: 100%; 
-            margin-bottom: 15px; 
-            font-family: 'JetBrains Mono';
-            font-size: 14px;
-        }
-        input:focus { border-color: var(--p); background: #151515; }
-
-        /* Структура Приложения */
-        #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
+        * { box-sizing: border-box; outline: none; transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        .sidebar { 
-            width: 300px; 
-            background: var(--side); 
-            border-right: 1px solid var(--brd); 
-            display: flex; 
-            flex-direction: column; 
-            z-index: 100;
+        body, html { 
+            margin: 0; padding: 0; height: 100vh; background: var(--bg); 
+            color: var(--text); font-family: var(--font-main); overflow: hidden; 
         }
 
-        .viewport { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            background: var(--chat); 
-            position: relative;
+        /* ТЕРМИНАЛЬНЫЕ ЭФФЕКТЫ */
+        .scanline {
+            width: 100%; height: 2px; background: rgba(255, 144, 0, 0.03);
+            position: fixed; z-index: 10000; pointer-events: none;
+            animation: scan 4s linear infinite;
         }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
 
-        /* Профиль в Сайдбаре */
-        .side-profile { 
-            padding: 40px 20px; 
-            text-align: center; 
-            border-bottom: 1px solid var(--brd); 
-            background: linear-gradient(180deg, #111 0%, #080808 100%);
-        }
-        .side-av { 
-            width: 90px; 
-            height: 90px; 
-            border-radius: 35px; 
-            border: 3px solid var(--p); 
-            margin-bottom: 15px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        .side-nick { font-family: 'Orbitron'; font-weight: 900; font-size: 16px; color: var(--p); }
-
-        .nav-item { 
-            padding: 18px 30px; 
-            cursor: pointer; 
-            color: #555; 
-            font-weight: 800; 
-            font-size: 12px; 
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            border-left: 4px solid transparent;
-        }
-        .nav-item:hover { color: #fff; background: #111; }
-        .nav-item.active { 
-            color: var(--p); 
-            border-left: 4px solid var(--p); 
-            background: rgba(255,144,0,0.05); 
-        }
-
-        /* Чат */
-        #chat-box { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 30px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            scroll-behavior: smooth;
-        }
-        .bubble { 
-            padding: 16px 20px; 
-            border-radius: 22px; 
-            background: #121212; 
-            border: 1px solid var(--brd); 
-            font-size: 15px; 
-            line-height: 1.5;
-            max-width: 80%;
-            position: relative;
-            animation: fadeIn 0.3s ease;
-        }
-        .bubble.me { 
-            align-self: flex-end; 
-            border-color: var(--p); 
-            background: #1a1400; 
-        }
-        .u-label { 
-            font-size: 11px; 
-            font-weight: 900; 
-            margin-bottom: 6px; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Аукцион */
-        .auc-container { padding: 40px; max-width: 600px; margin: 0 auto; width: 100%; }
-        .auc-card { 
-            background: #0f0f0f; 
-            border: 2px solid var(--p); 
-            border-radius: 40px; 
-            padding: 40px; 
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(255,144,0,0.15);
-        }
-        .auc-price { 
-            font-size: 60px; 
-            font-weight: 900; 
-            color: var(--green); 
-            font-family: 'Orbitron'; 
-            margin: 20px 0;
-            text-shadow: 0 0 20px rgba(0,255,136,0.3);
-        }
-
-        /* Уведомления */
-        #notify { 
-            position: fixed; 
-            top: 30px; 
-            left: 50%; 
-            transform: translateX(-50%) translateY(-200px); 
-            background: var(--p); 
-            color: #000; 
-            padding: 15px 40px; 
-            border-radius: 60px; 
-            font-weight: 900; 
-            z-index: 10000; 
-            transition: 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            font-family: 'Orbitron';
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Значки */
-        .badge { font-size: 9px; padding: 4px 10px; border-radius: 8px; font-weight: 900; color: #fff; text-transform: uppercase; }
-        .badge-sys { background: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.3); }
-        .badge-user { background: #333; }
-
-        /* Скроллбар */
-        ::-webkit-scrollbar { width: 6px; }
+        /* СКРОЛЛБАРЫ */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--brd); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--p); }
+
+        /* ОСНОВНАЯ СЕТКА */
+        #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
+
+        /* САЙДБАР */
+        .sidebar { 
+            width: 350px; background: var(--side); border-right: 1px solid var(--brd);
+            display: flex; flex-direction: column; z-index: 100;
+        }
+
+        .profile-module {
+            padding: 40px 30px; border-bottom: 1px solid var(--brd);
+            background: linear-gradient(180deg, #0a0a0a 0%, transparent 100%);
+        }
+        .av-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px; }
+        .av-img { 
+            width: 100%; height: 100%; border-radius: 40px; border: 2px solid var(--p);
+            box-shadow: 0 0 25px var(--p-low); padding: 5px; background: #000;
+        }
+        .status-orb {
+            position: absolute; bottom: 5px; right: 5px; width: 20px; height: 20px;
+            background: var(--green); border-radius: 50%; border: 4px solid var(--side);
+        }
+
+        .user-stats { margin-top: 15px; text-align: center; }
+        .stat-line { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 11px; margin-top: 5px; color: var(--text-dim); }
+
+        /* НАВИГАЦИЯ */
+        .nav-list { flex: 1; padding: 20px 0; overflow-y: auto; }
+        .nav-link {
+            padding: 18px 35px; cursor: pointer; color: var(--text-dim);
+            font-family: var(--font-ui); font-size: 11px; letter-spacing: 2px;
+            display: flex; align-items: center; gap: 15px; border-left: 4px solid transparent;
+        }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.02); }
+        .nav-link.active { 
+            color: var(--p); border-left-color: var(--p); background: var(--p-low);
+            text-shadow: 0 0 10px var(--p-low);
+        }
+
+        /* ОСНОВНОЙ ВЬЮПОРТ */
+        .main-stage { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+
+        /* ЧАТ-ИНТЕРФЕЙС */
+        #chat-container { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        #message-stream { flex: 1; overflow-y: auto; padding: 40px; display: flex; flex-direction: column; gap: 20px; }
+
+        .msg-node { display: flex; flex-direction: column; gap: 8px; animation: slideIn 0.3s ease-out; max-width: 85%; }
+        .msg-node.own { align-self: flex-end; align-items: flex-end; }
+
+        .msg-meta { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 10px; }
+        .msg-body { 
+            padding: 16px 24px; border-radius: 20px; background: var(--panel); 
+            border: 1px solid var(--brd); font-size: 15px; line-height: 1.6; color: #ddd;
+        }
+        .own .msg-body { border-color: var(--p); background: #1a1400; color: #fff; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ВВОД СООБЩЕНИЯ */
+        .input-dock {
+            padding: 30px; background: var(--side); border-top: 1px solid var(--brd);
+            display: flex; gap: 15px; align-items: center;
+        }
+        .input-dock input {
+            flex: 1; background: #000; border: 1px solid var(--brd-active);
+            padding: 18px 25px; border-radius: 18px; color: #fff; font-family: var(--font-mono);
+        }
+        .input-dock input:focus { border-color: var(--p); box-shadow: 0 0 15px var(--p-low); }
+
+        /* БЕЙДЖИ И ТИТУЛЫ */
+        .label { 
+            padding: 3px 8px; border-radius: 5px; font-size: 9px; 
+            font-weight: 900; text-transform: uppercase; font-family: var(--font-mono);
+        }
+        .label-p { background: var(--p); color: #000; }
+        .label-admin { background: var(--red); color: #fff; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        .label-sec { background: #222; color: #888; border: 1px solid #333; }
+
+        /* ВКЛАДКИ (ТАБЫ) */
+        .content-tab { display: none; padding: 60px; height: 100%; overflow-y: auto; }
+        .content-tab.active { display: block; }
+
+        /* АДМИН ПАНЕЛЬ (ROOT) */
+        .card { background: var(--panel); border: 1px solid var(--brd); border-radius: 25px; padding: 40px; margin-bottom: 30px; }
+        .btn-core {
+            padding: 16px 30px; border: none; border-radius: 15px; cursor: pointer;
+            font-family: var(--font-ui); font-weight: 900; text-transform: uppercase;
+            letter-spacing: 1px; font-size: 12px;
+        }
+        .btn-p { background: var(--p); color: #000; }
+        .btn-danger { background: var(--red); color: #fff; }
+        .btn-p:hover { transform: translateY(-3px); box-shadow: 0 10px 20px var(--p-low); }
+
+        /* УВЕДОМЛЕНИЯ */
+        #system-notifier {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            background: var(--p); color: #000; padding: 15px 45px; border-radius: 50px;
+            font-family: var(--font-ui); font-weight: 900; z-index: 100000;
+            transition: 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        /* МУТ-ЗАГЛУШКА */
+        .restrict-layer {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 500; display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); color: var(--red); text-align: center;
+        }
+
+        /* AUTH SCREEN */
+        #auth-portal {
+            position: fixed; inset: 0; background: #000; z-index: 99999;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .portal-box { width: 380px; text-align: center; }
     </style>
 </head>
 <body>
 
-<div id="notify">SYSTEM_OFFLINE</div>
+<div class="scanline"></div>
+<div id="system-notifier">CONNECTED</div>
 
-<div id="auth-scr" style="position:fixed; inset:0; background:#000; z-index:9000; display:flex; align-items:center; justify-content:center;">
-    <div style="width:320px; text-align:center;">
-        <h1 style="font-family:'Orbitron'; color:var(--p); font-size:40px; margin:0; letter-spacing:8px;">MOPSO</h1>
-        <p style="color:#333; font-weight:800; margin-bottom:40px; font-size:12px;">ENCRYPTED CHAT NETWORK</p>
-        <input type="text" id="log-u" placeholder="USERNAME">
-        <input type="password" id="log-p" placeholder="PASSWORD">
-        <button class="btn" onclick="login()">INITIALIZE SESSION</button>
+<div id="auth-portal">
+    <div class="portal-box">
+        <h1 style="font-family: var(--font-ui); font-size: 50px; color: var(--p); margin: 0; letter-spacing: 10px;">MOPSO</h1>
+        <p style="color: var(--text-dim); font-size: 11px; margin-bottom: 50px; letter-spacing: 5px;">CORE ENGINE V37.0</p>
+        
+        <input type="text" id="auth-user" placeholder="USER_IDENTITY" style="margin-bottom: 15px; width: 100%; padding: 20px; background: #080808; border: 1px solid #1a1a1a; border-radius: 15px; color: #fff; font-family: var(--font-mono);">
+        <input type="password" id="auth-pass" placeholder="ACCESS_KEY" style="margin-bottom: 30px; width: 100%; padding: 20px; background: #080808; border: 1px solid #1a1a1a; border-radius: 15px; color: #fff; font-family: var(--font-mono);">
+        
+        <button class="btn-core btn-p" onclick="App.login()" style="width: 100%;">INITIALIZE_SESSION</button>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar">
-        <div class="side-profile">
-            <img id="ui-av" class="side-av" src="">
-            <div id="ui-nick-box" class="side-nick">@GUEST</div>
-            <div id="ui-stars" style="color:var(--green); font-weight:900; font-size:20px; margin-top:10px;">0 ⭐</div>
+        <div class="profile-module">
+            <div class="av-container">
+                <img id="ui-avatar" class="av-img" src="">
+                <div id="ui-status-orb" class="status-orb"></div>
+            </div>
+            <div id="ui-nick-display" style="text-align:center; font-family: var(--font-ui); color: var(--p); font-size: 16px; font-weight: 900;"></div>
+            
+            <div class="user-stats">
+                <div class="stat-line"><span>STARS:</span><span id="ui-stars" style="color:var(--green)">0</span></div>
+                <div class="stat-line"><span>RANK:</span><span id="ui-rank" style="color:var(--blue)">BRONZE</span></div>
+                <div class="stat-line"><span>XP:</span><span id="ui-xp">0</span></div>
+            </div>
         </div>
 
-        <nav style="flex:1; padding-top:20px;">
-            <div class="nav-item active" onclick="setTab('chat', this)">📡 TERMINAL</div>
-            <div class="nav-item" onclick="setTab('auc', this)">🔨 AUCTION</div>
-            <div class="nav-item" onclick="setTab('bank', this)">🏦 VAULT</div>
-            <div id="ui-admin-nav" class="nav-item" style="display:none; color:var(--red);" onclick="setTab('admin', this)">⚡ ROOT_SYSTEM</div>
-        </nav>
+        <div class="nav-list">
+            <div class="nav-link active" onclick="App.switchTab('chat', this)">📡 TERMINAL_FEED</div>
+            <div class="nav-link" onclick="App.switchTab('identity', this)">👤 IDENTITY_VAULT</div>
+            <div class="nav-link" onclick="App.switchTab('market', this)">🔨 BLACK_MARKET</div>
+            <div id="admin-nav-item" class="nav-link" style="display:none; color: var(--red);" onclick="App.switchTab('root', this)">⚡ ROOT_SYSTEM</div>
+        </div>
 
-        <div style="padding:30px;">
-            <button class="btn" style="background:#111; color:#444;" onclick="location.reload()">TERMINATE</button>
+        <div style="padding: 25px; border-top: 1px solid var(--brd);">
+            <button class="btn-core" style="background: transparent; border: 1px solid #222; color: #444; width: 100%;" onclick="location.reload()">LOGOUT_SYSTEM</button>
         </div>
     </aside>
 
-    <main class="viewport">
+    <main class="main-stage">
         
-        <div id="tab-chat" class="tab" style="display:flex; flex-direction:column; height:100%;">
-            <div id="chat-box"></div>
-            <div style="padding:30px; background:var(--side); display:flex; gap:15px; border-top:1px solid var(--brd);">
-                <input type="text" id="msg-i" placeholder="TYPE MESSAGE..." style="margin:0;" onkeypress="if(event.key==='Enter') send()">
-                <button class="btn" onclick="send()" style="width:100px;">➔</button>
-            </div>
-        </div>
-
-        <div id="tab-auc" class="tab" style="display:none;">
-            <div class="auc-container">
-                <h1 style="font-family:'Orbitron'; text-align:center; color:var(--p); margin-bottom:30px;">NFT_USERNAMES</h1>
-                <div class="auc-card">
-                    <p id="auc-item-name" style="color:#555; font-weight:800; text-transform:uppercase;">ТЕКУЩИЙ ЛОТ</p>
-                    <div id="auc-price" class="auc-price">0 ⭐</div>
-                    <p id="auc-bidder" style="font-weight:900; color:var(--p); font-size:18px; margin-bottom:30px;">ЛИДЕР: SYSTEM</p>
-                    
-                    <input type="number" id="bid-i" placeholder="ENTER HIGHER BID...">
-                    <button class="btn" onclick="placeBid()">PLACE BID</button>
+        <div id="tab-chat" class="content-tab active" style="padding: 0; display: flex; flex-direction: column;">
+            <div id="restrict-msg" class="restrict-layer">
+                <div>
+                    <h1 style="font-size: 40px;">SESSION_SUSPENDED</h1>
+                    <p>ТВОЙ ДОСТУП В ТЕРМИНАЛ ОГРАНИЧЕН АДМИНИСТРАТОРОМ</p>
                 </div>
+            </div>
+            <div id="message-stream"></div>
+            <div class="input-dock">
+                <input type="text" id="chat-input" placeholder="READY_FOR_INPUT..." onkeypress="if(event.key==='Enter') App.sendMessage()">
+                <button class="btn-core btn-p" onclick="App.sendMessage()" style="width: 80px;">➜</button>
+            </div>
+        </div>
+
+        <div id="tab-identity" class="content-tab">
+            <h1>IDENTITY_VAULT</h1>
+            <div class="card">
+                <h3>MANAGE_TITLES</h3>
+                <p style="color: var(--text-dim); font-size: 12px; margin-bottom: 20px;">Добавляй новые приставки к своему имени. Они будут видны в каждом твоем сообщении.</p>
+                <input type="text" id="new-title-input" placeholder="e.g. pavlin, rich, boss" style="background:#000; border:1px solid #222; padding:15px; width:100%; color:#fff; border-radius:12px; margin-bottom:15px;">
+                <button class="btn-core btn-p" onclick="App.addTitle()">MINT_NEW_TITLE</button>
+                <div id="identity-badges" style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;"></div>
+            </div>
+        </div>
+
+        <div id="tab-market" class="content-tab">
+            <h1>BLACK_MARKET_AUCTION</h1>
+            <div class="card" style="text-align: center;">
+                <div style="color: var(--red); font-family: var(--font-ui); font-size: 12px; margin-bottom: 10px;">AUCTION_ACTIVE</div>
+                <h2 id="auc-item-name" style="font-size: 40px; margin-bottom: 10px;">@SUPREME</h2>
+                <div id="auc-current-price" style="font-size: 60px; color: var(--green); font-family: var(--font-ui); margin-bottom: 20px;">0 ⭐</div>
+                <p id="auc-leader" style="font-family: var(--font-mono); color: var(--text-dim);">LEADING_BY: SYSTEM</p>
                 
-                <div id="auc-history" style="margin-top:30px; font-family:'JetBrains Mono'; font-size:12px; color:#333;">
-                    </div>
+                <div style="margin-top:40px; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <input type="number" id="bid-input" placeholder="MIN_STEP: 500" style="text-align: center; margin-bottom: 15px;">
+                    <button class="btn-core btn-p" style="width: 100%;" onclick="App.placeBid()">CONFIRM_BID</button>
+                </div>
             </div>
         </div>
 
-        <div id="tab-bank" class="tab" style="display:none; padding:60px;">
-            <h1 style="font-family:'Orbitron';">VAULT_ACCESS</h1>
-            <p style="color:#555; margin-bottom:40px;">Введите секретный код для получения звезд</p>
-            <input type="text" id="check-i" placeholder="MOPSO_XXXX_XXXX">
-            <button class="btn" onclick="redeem()">ACTIVATE ASSETS</button>
+        <div id="tab-root" class="content-tab">
+            <h1 style="color: var(--red);">ROOT_ACCESS_ONLY</h1>
             
-            <div style="margin-top:60px; padding:30px; border:1px solid var(--brd); border-radius:20px;">
-                <h3 style="margin-top:0;">СМЕНА ИДЕНТИЧНОСТИ</h3>
-                <p style="color:#444; font-size:12px;">Измените свой никнейм мгновенно (Бесплатно)</p>
-                <input type="text" id="mint-i" placeholder="@NEW_NICKNAME">
-                <button class="btn" style="background:#fff; color:#000;" onclick="mint()">RE-MINT NICKNAME</button>
+            <div class="card" style="border-color: var(--red);">
+                <h3>GLOBAL_WIPE</h3>
+                <p>Удалить все сообщения из базы данных и очистить чат у всех пользователей мгновенно.</p>
+                <button class="btn-core btn-danger" onclick="App.wipeDatabase()">EXECUTE_FULL_WIPE</button>
+            </div>
+
+            <div class="card">
+                <h3>USER_RESTRICTION</h3>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="admin-target-user" placeholder="@username" style="flex:1;">
+                    <button class="btn-core" style="background: #222; color: #fff;" onclick="App.toggleMute()">TOGGLE_MUTE</button>
+                </div>
             </div>
         </div>
 
-        <div id="tab-admin" class="tab" style="display:none; padding:60px;">
-            <h1 style="font-family:'Orbitron'; color:var(--red);">ROOT_TERMINAL</h1>
-            
-            <div style="background:#111; padding:30px; border-radius:25px; border:1px solid var(--red); margin-bottom:30px;">
-                <h2 style="margin-top:0;">ASSET GENERATOR</h2>
-                <button class="btn" onclick="genAdminCheck()">GENERATE 50,000 ⭐</button>
-                <div id="gen-res" style="margin-top:20px; font-family:monospace; color:var(--p); background:#000; padding:15px; border-radius:10px; border:1px solid #333;"></div>
-            </div>
-
-            <button class="btn btn-red" onclick="clearChat()">WIPE ALL MESSAGES FROM DATABASE</button>
-        </div>
     </main>
 </div>
 
 <script>
-    // КОНФИГ SUPABASE
+    /* MOPSOGRAM CORE ENGINE
+       VERSION: 37.0
+       MODULE-BASED STRUCTURE
+    */
+
     const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
     const sb = supabase.createClient(S_URL, S_KEY);
 
-    let currUser = null;
+    const App = {
+        user: null,
+        activeTab: 'chat',
 
-    // АВТОРИЗАЦИЯ
-    async function login() {
-        const u = document.getElementById('log-u').value.trim();
-        const p = document.getElementById('log-p').value.trim();
-        if(!u || !p) return;
-        
-        const nick = u.startsWith('@') ? u : '@' + u;
+        // 1. АВТОРИЗАЦИЯ
+        async login() {
+            const u = document.getElementById('auth-user').value.trim();
+            const p = document.getElementById('auth-pass').value.trim();
+            if(!u) return;
 
-        try {
-            let { data: user, error } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
+            const nick = u.startsWith('@') ? u : '@' + u;
             
-            if (!user) {
-                // Регистрируем
-                const { data: n, error: e2 } = await sb.from('users').insert([{ 
-                    username: nick, 
-                    password: p, 
-                    stars: 1000, 
-                    role: nick === '@admin' ? 'admin' : 'user' 
-                }]).select().single();
-                if(e2) throw e2;
-                currUser = n;
-            } else {
-                // Вход
-                if(user.password !== p) return toast("ERROR: INVALID ACCESS KEY", "#ff3333");
-                currUser = user;
+            try {
+                let { data: user, error } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
+                
+                if(!user) {
+                    const { data: n } = await sb.from('users').insert([{
+                        username: nick, password: p, stars: 1000, 
+                        role: nick === '@admin' ? 'admin' : 'user',
+                        titles: []
+                    }]).select().single();
+                    this.user = n;
+                } else {
+                    if(user.password !== p) return this.notify("ACCESS_DENIED: WRONG_KEY", "red");
+                    this.user = user;
+                }
+
+                document.getElementById('auth-portal').style.display = 'none';
+                document.getElementById('app').style.display = 'flex';
+                
+                if(this.user.role === 'admin') document.getElementById('admin-nav-item').style.display = 'flex';
+
+                this.initRealtime();
+                this.loadMessages();
+                this.updateUI();
+                this.notify("IDENTITY_VERIFIED");
+
+            } catch (err) { this.notify("CORE_ERROR: " + err.message, "red"); }
+        },
+
+        // 2. РЕАЛТАЙМ КАНАЛЫ (FIXED)
+        initRealtime() {
+            // Глобальный канал для сообщений (Insert и Delete)
+            sb.channel('global-chat')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+                    this.renderMessage(payload.new);
+                })
+                .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
+                    document.getElementById('message-stream').innerHTML = ''; // Моментальная чистка
+                    this.notify("SYSTEM_CLEARED_BY_ADMIN");
+                })
+                .subscribe();
+
+            // Канал для обновления данных текущего юзера
+            sb.channel('user-sync')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${this.user.id}` }, (payload) => {
+                    this.user = payload.new;
+                    this.updateUI();
+                })
+                .subscribe();
+
+            // Канал аукциона
+            sb.channel('market-sync')
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'auction' }, (payload) => {
+                    this.updateAuctionUI(payload.new);
+                })
+                .subscribe();
+            
+            // Первичная подгрузка аукциона
+            this.updateAuctionUI();
+        },
+
+        // 3. ЧАТ ЛОГИКА
+        async loadMessages() {
+            const { data } = await sb.from('messages').select('*, users(*)').order('created_at', { ascending: true });
+            const box = document.getElementById('message-stream');
+            box.innerHTML = '';
+            data?.forEach(m => this.renderMessage(m));
+        },
+
+        renderMessage(m) {
+            const stream = document.getElementById('message-stream');
+            const isOwn = m.username === this.user.username;
+            const author = m.users || { titles: [] };
+            
+            let badges = `<span class="label label-p">${m.username}</span>`;
+            if(m.username === '@admin') badges += `<span class="label label-admin">ROOT</span>`;
+            author.titles?.forEach(t => {
+                badges += `<span class="label label-sec">@${t}</span>`;
+            });
+
+            const node = document.createElement('div');
+            node.className = `msg-node ${isOwn ? 'own' : ''}`;
+            node.innerHTML = `
+                <div class="msg-meta">${badges}</div>
+                <div class="msg-body">${m.text}</div>
+            `;
+            stream.appendChild(node);
+            stream.scrollTop = stream.scrollHeight;
+        },
+
+        async sendMessage() {
+            if(this.user.is_muted) return this.notify("RESTRICTED: YOU_ARE_MUTED", "red");
+            
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            input.value = '';
+            await sb.from('messages').insert({ 
+                username: this.user.username, 
+                text: text, 
+                user_id: this.user.id 
+            });
+            
+            // Добавляем XP за сообщение
+            await sb.from('users').update({ xp: (this.user.xp || 0) + 10 }).eq('id', this.user.id);
+        },
+
+        // 4. ТИТУЛЫ (IDENTITY)
+        async addTitle() {
+            const input = document.getElementById('new-title-input');
+            const val = input.value.trim().replace('@', '');
+            if(!val) return;
+
+            const newList = [...new Set([...(this.user.titles || []), val])];
+            const { error } = await sb.from('users').update({ titles: newList }).eq('id', this.user.id);
+            
+            if(!error) {
+                this.notify("TITLE_MINTED_SUCCESSFULLY");
+                input.value = '';
             }
+        },
 
-            document.getElementById('auth-scr').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
-            if(currUser.role === 'admin') document.getElementById('ui-admin-nav').style.display = 'block';
-            
-            startRealtime();
-            loadChat();
-            updateAuctionUI();
-            updateUI();
-            toast("CONNECTION ESTABLISHED");
+        // 5. АУКЦИОН
+        async updateAuctionUI(data = null) {
+            if(!data) {
+                const { data: auc } = await sb.from('auction').select('*').eq('id', 1).single();
+                data = auc;
+            }
+            if(!data) return;
+            document.getElementById('auc-item-name').innerText = data.item_name;
+            document.getElementById('auc-current-price').innerText = data.current_bid.toLocaleString() + " ⭐";
+            document.getElementById('auc-leader').innerText = "LEADING_BY: " + data.bidder_name;
+        },
 
-        } catch (e) { toast("DB ERROR: " + e.message, "#ff3333"); }
-    }
-
-    // РЕАЛТАЙМ (Самое важное)
-    function startRealtime() {
-        // Слушаем Чат
-        sb.channel('chat-room').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (pl) => {
-            renderMessage(pl.new);
-        }).on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
-            document.getElementById('chat-box').innerHTML = '';
-        }).subscribe();
-
-        // Слушаем Пользователя (звезды)
-        sb.channel('user-updates').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${currUser.id}` }, (pl) => {
-            currUser = pl.new;
-            updateUI();
-        }).subscribe();
-
-        // Слушаем Аукцион
-        sb.channel('auction-updates').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'auction', filter: 'id=eq.1' }, (pl) => {
-            updateAuctionUI(pl.new);
-        }).subscribe();
-    }
-
-    // ЧАТ ЛОГИКА
-    async function loadChat() {
-        const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
-        document.getElementById('chat-box').innerHTML = '';
-        msgs?.forEach(renderMessage);
-    }
-
-    function renderMessage(m) {
-        const box = document.getElementById('chat-box');
-        const isMe = m.username === currUser.username;
-        const isAdmin = m.username === '@admin';
-        
-        box.innerHTML += `
-            <div class="bubble ${isMe ? 'me' : ''}">
-                <div class="u-label">
-                    <span class="badge ${isAdmin ? 'badge-sys' : 'badge-user'}">${isAdmin ? 'SYSTEM' : 'USER'}</span>
-                    <span style="color: ${isAdmin ? 'var(--red)' : 'var(--p)'}">${m.username}</span>
-                </div>
-                <div>${m.text}</div>
-            </div>`;
-        box.scrollTop = box.scrollHeight;
-    }
-
-    async function send() {
-        const i = document.getElementById('msg-i');
-        const txt = i.value.trim();
-        if(!txt || currUser.is_muted) return;
-        
-        i.value = '';
-        await sb.from('messages').insert({ username: currUser.username, text: txt });
-    }
-
-    // АУКЦИОН ЛОГИКА
-    async function updateAuctionUI(data = null) {
-        if(!data) {
+        async placeBid() {
+            const amount = parseInt(document.getElementById('bid-input').value);
             const { data: auc } = await sb.from('auction').select('*').eq('id', 1).single();
-            data = auc;
+            
+            if(amount <= auc.current_bid) return this.notify("BID_TOO_LOW", "red");
+            if(this.user.stars < amount) return this.notify("NOT_ENOUGH_STARS", "red");
+
+            await sb.from('users').update({ stars: this.user.stars - amount }).eq('id', this.user.id);
+            await sb.from('auction').update({ current_bid: amount, bidder_name: this.user.username }).eq('id', 1);
+            this.notify("BID_PLACED");
+        },
+
+        // 6. ROOT УПРАВЛЕНИЕ (АДМИНКА)
+        async wipeDatabase() {
+            if(!confirm("ПОЛНАЯ ОЧИСТКА БАЗЫ ДАННЫХ? ЭТО НЕЛЬЗЯ ОТМЕНИТЬ.")) return;
+            const { error } = await sb.from('messages').delete().neq('username', 'system_node');
+            if(!error) this.notify("DATABASE_WIPED_BY_ROOT");
+        },
+
+        async toggleMute() {
+            const target = document.getElementById('admin-target-user').value.trim();
+            const { data: targetUser } = await sb.from('users').select('*').eq('username', target).single();
+            if(!targetUser) return this.notify("USER_NOT_FOUND", "red");
+
+            await sb.from('users').update({ is_muted: !targetUser.is_muted }).eq('username', target);
+            this.notify(`MUTE_STATUS_CHANGED: ${target}`);
+        },
+
+        // 7. UI ХЕЛПЕРЫ
+        updateUI() {
+            document.getElementById('ui-nick-display').innerText = this.user.username;
+            document.getElementById('ui-stars').innerText = this.user.stars.toLocaleString();
+            document.getElementById('ui-xp').innerText = this.user.xp || 0;
+            document.getElementById('ui-avatar').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${this.user.username}`;
+            
+            // Обновляем бейджи в Vault
+            const badgeBox = document.getElementById('identity-badges');
+            badgeBox.innerHTML = this.user.titles?.map(t => `<span class="label label-sec">@${t}</span>`).join('') || '';
+
+            // Проверка мута
+            document.getElementById('restrict-msg').style.display = this.user.is_muted ? 'flex' : 'none';
+        },
+
+        switchTab(tabName, el) {
+            document.querySelectorAll('.content-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabName).classList.add('active');
+            el.classList.add('active');
+            this.activeTab = tabName;
+        },
+
+        notify(msg, color = "orange") {
+            const n = document.getElementById('system-notifier');
+            n.innerText = msg;
+            n.style.background = color === "red" ? 'var(--red)' : 'var(--p)';
+            n.style.top = '25px';
+            setTimeout(() => n.style.top = '-100px', 3000);
         }
-        document.getElementById('auc-item-name').innerText = "ЛОТ: " + data.item_name;
-        document.getElementById('auc-price').innerText = data.current_bid.toLocaleString() + " ⭐";
-        document.getElementById('auc-bidder').innerText = "ЛИДЕР: " + data.bidder_name;
-    }
+    };
 
-    async function placeBid() {
-        const bid = parseInt(document.getElementById('bid-i').value);
-        const { data: auc } = await sb.from('auction').select('*').eq('id', 1).single();
-
-        if(isNaN(bid) || bid <= auc.current_bid) return toast("BID TOO LOW!", "#ff3333");
-        if(currUser.stars < bid) return toast("NOT ENOUGH STARS!", "#ff3333");
-
-        // 1. Снимаем звезды
-        await sb.from('users').update({ stars: currUser.stars - bid }).eq('id', currUser.id);
-        // 2. Обновляем ставку
-        await sb.from('auction').update({ current_bid: bid, bidder_name: currUser.username }).eq('id', 1);
-        
-        toast("BID PLACED SUCCESSFULLY!");
-        document.getElementById('bid-i').value = '';
-    }
-
-    // БАНК И МИНТ
-    async function redeem() {
-        const code = document.getElementById('check-i').value.trim();
-        const { data: check } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-        
-        if(!check) return toast("INVALID OR USED CODE", "#ff3333");
-        
-        await sb.from('checks').update({ is_used: true }).eq('id', check.id);
-        await sb.from('users').update({ stars: currUser.stars + check.amount }).eq('id', currUser.id);
-        toast("ASSETS SECURED: +" + check.amount);
-        document.getElementById('check-i').value = '';
-    }
-
-    async function mint() {
-        const newNick = document.getElementById('mint-i').value.trim();
-        if(!newNick) return;
-        const formatted = newNick.startsWith('@') ? newNick : '@' + newNick;
-
-        const { data: exists } = await sb.from('users').select('id').eq('username', formatted).maybeSingle();
-        if(exists) return toast("NICKNAME ALREADY CLAIMED", "#ff3333");
-
-        await sb.from('messages').update({ username: formatted }).eq('username', currUser.username);
-        await sb.from('users').update({ username: formatted }).eq('id', currUser.id);
-        
-        toast("IDENTITY UPDATED. REBOOTING...");
-        setTimeout(() => location.reload(), 1500);
-    }
-
-    // АДМИН ПАНЕЛЬ
-    async function genAdminCheck() {
-        const code = "MOPSO_" + Math.random().toString(36).substr(2, 9).toUpperCase();
-        await sb.from('checks').insert({ code, amount: 50000 });
-        document.getElementById('gen-res').innerText = code;
-        toast("CHECK GENERATED");
-    }
-
-    async function clearChat() {
-        if(!confirm("WIPE ENTIRE DATA?")) return;
-        await sb.from('messages').delete().neq('id', 0);
-        toast("DATABASE CLEANED");
-    }
-
-    // ИНТЕРФЕЙС
-    function updateUI() {
-        document.getElementById('ui-stars').innerText = currUser.stars.toLocaleString() + " ⭐";
-        document.getElementById('ui-nick-box').innerText = currUser.username;
-        document.getElementById('ui-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${currUser.username}`;
-    }
-
-    function setTab(name, el) {
-        document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('tab-' + name).style.display = (name === 'chat' ? 'flex' : 'block');
-        el.classList.add('active');
-    }
-
-    function toast(msg, bg = "#ff9000") {
-        const t = document.getElementById('notify');
-        t.innerText = msg; t.style.background = bg;
-        t.style.transform = "translateX(-50%) translateY(0)";
-        setTimeout(() => t.style.transform = "translateX(-50%) translateY(-200px)", 3000);
-    }
 </script>
-
 </body>
 </html>
