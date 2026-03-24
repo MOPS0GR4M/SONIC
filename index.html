@@ -3,130 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM 22.0 | FRAGMENT & ADMIN</title>
+    <title>MOPSOGRAM | MESSENGER & FRAGMENT</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;900&family=Inter:wght@300;600;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@400;500;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --p: #ff9000; --p-dark: #cc7300; --p-glow: rgba(255, 144, 0, 0.2);
-            --bg: #000000; --side: #0a0a0a; --card: #111111;
-            --brd: #1f1f1f; --text: #ffffff; --muted: #666666;
+            --p: #ff9000; --bg: #000; --side: #0f0f0f; --chat: #050505;
+            --brd: #1a1a1a; --text: #fff; --msg-in: #181818; --msg-out: #2b1d00;
         }
 
-        * { box-sizing: border-box; outline: none; transition: all 0.2s ease; }
+        * { box-sizing: border-box; outline: none; transition: 0.2s; }
         body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        /* Animations */
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        /* --- AUTH SCREEN --- */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--side); padding: 40px; border-radius: 20px; border: 1px solid var(--brd); width: 320px; text-align: center; box-shadow: 0 0 50px rgba(0,0,0,1); }
 
-        /* Auth */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-        .auth-box { background: var(--side); padding: 40px; border-radius: 24px; border: 1px solid var(--brd); width: 350px; text-align: center; }
+        /* --- LAYOUT --- */
+        .app { display: none; height: 100vh; display: flex; }
         
-        /* Layout */
-        .app-container { display: none; height: 100vh; width: 100vw; }
-        .sidebar { width: 300px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
-        .viewport { flex: 1; display: flex; flex-direction: column; background: radial-gradient(circle at center, #111 0%, #000 100%); }
+        /* Список чатов */
+        .chat-list { width: 350px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
+        .chat-header { padding: 20px; border-bottom: 1px solid var(--brd); display: flex; align-items: center; justify-content: space-between; }
+        
+        .chat-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        .chat-item:hover { background: rgba(255,144,0,0.05); }
+        .chat-item.active { background: rgba(255,144,0,0.1); border-left: 3px solid var(--p); }
+        .avatar-sm { width: 45px; height: 45px; border-radius: 50%; background: #222; object-fit: cover; }
 
-        /* Nav */
-        .nav-item { padding: 15px 25px; cursor: pointer; color: var(--muted); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-        .nav-item:hover { color: var(--p); background: rgba(255,144,0,0.05); }
-        .nav-item.active { color: #fff; background: var(--p); border-radius: 0 50px 50px 0; margin-right: 10px; }
+        /* Окно чата */
+        .main-chat { flex: 1; display: flex; flex-direction: column; background: var(--chat); }
+        .chat-top { height: 65px; border-bottom: 1px solid var(--brd); display: flex; align-items: center; padding: 0 25px; background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); z-index: 10; }
+        
+        #messages-view { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 10px; background-image: radial-gradient(var(--brd) 1px, transparent 1px); background-size: 20px 20px; }
+        
+        .bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 14px; position: relative; animation: pop 0.2s ease; cursor: pointer; }
+        .bubble.in { align-self: flex-start; background: var(--msg-in); border: 1px solid var(--brd); border-bottom-left-radius: 2px; }
+        .bubble.out { align-self: flex-end; background: var(--msg-out); border: 1px solid var(--p); border-bottom-right-radius: 2px; }
 
-        /* Chat */
-        #chat-engine { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; animation: slideUp 0.3s ease; }
-        .msg.me { align-self: flex-end; }
-        .bubble { padding: 12px 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--brd); font-size: 14px; line-height: 1.4; }
-        .msg.me .bubble { border-color: var(--p); background: #1a1300; }
-        .admin-tools { font-size: 10px; margin-top: 5px; display: flex; gap: 10px; color: #ff4444; font-weight: 900; cursor: pointer; }
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Fragment Market */
-        .market-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 20px; }
-        .nft-card { background: var(--side); border: 1px solid var(--brd); border-radius: 20px; padding: 20px; text-align: center; position: relative; }
-        .nft-card:hover { border-color: var(--p); transform: translateY(-5px); box-shadow: 0 10px 30px var(--p-glow); }
-        .nft-name { font-family: 'JetBrains Mono'; color: var(--p); font-size: 16px; margin-bottom: 10px; }
-
-        /* Inputs */
-        .input-group { padding: 20px; background: var(--side); border-top: 1px solid var(--brd); display: flex; gap: 10px; }
-        input { background: #111; border: 1px solid #222; padding: 12px 15px; border-radius: 12px; color: #fff; flex: 1; font-family: 'JetBrains Mono'; }
+        /* Ввод */
+        .input-area { padding: 15px 25px; border-top: 1px solid var(--brd); display: flex; gap: 15px; align-items: center; background: var(--side); }
+        input { background: #1a1a1a; border: 1px solid #333; color: #fff; padding: 12px 15px; border-radius: 10px; flex: 1; font-size: 14px; }
         input:focus { border-color: var(--p); }
-        .btn { background: var(--p); border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; }
-        .btn:active { transform: scale(0.95); }
 
-        /* Toast */
-        #toast { position: fixed; top: 20px; right: 20px; padding: 15px 25px; border-radius: 12px; background: var(--p); color: #000; font-weight: 900; transform: translateX(200%); z-index: 2000; }
+        /* --- МИНИ-ПРОФИЛЬ --- */
+        #user-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; }
+        .profile-card { background: var(--side); width: 300px; border-radius: 25px; border: 1px solid var(--p); padding: 30px; text-align: center; }
+        .profile-card img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--p); margin-bottom: 15px; }
+
+        /* --- КНОПКИ --- */
+        .btn-p { background: var(--p); border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; cursor: pointer; color: #000; }
+        .btn-p:hover { box-shadow: 0 0 15px var(--p); }
+        .admin-badge { background: #ff4444; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; font-weight: 900; }
+
+        /* --- NOTIFY --- */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--p); color: #000; padding: 10px 30px; border-radius: 50px; font-weight: 800; z-index: 5000; }
     </style>
 </head>
 <body>
 
-<div id="toast">SYSTEM MESSAGE</div>
+<div id="toast">STATUS_OK</div>
 
 <div id="auth-screen">
-    <div class="auth-box">
-        <h2 style="font-family:'Orbitron'; color:var(--p)">MOPSOGRAM</h2>
-        <input type="text" id="log-u" placeholder="@username" style="width:100%; margin-bottom:10px;">
-        <input type="password" id="log-p" placeholder="password" style="width:100%; margin-bottom:20px;">
-        <button class="btn" style="width:100%" onclick="auth()">ACCESS TERMINAL</button>
+    <div class="auth-card">
+        <h1 style="font-family:'Orbitron'; color:var(--p); font-size: 20px;">MOPSOGRAM</h1>
+        <p style="font-size: 12px; color:#555; margin-bottom: 25px;">Decentralized Terminal v2.0</p>
+        <input type="text" id="auth-u" placeholder="@username" style="width:100%; margin-bottom:10px;">
+        <input type="password" id="auth-p" placeholder="password" style="width:100%; margin-bottom:20px;">
+        <button class="btn-p" style="width:100%" onclick="login()">INITIALIZE</button>
     </div>
 </div>
 
-<div class="app-container" id="app">
-    <aside class="sidebar">
-        <div style="padding:30px; border-bottom:1px solid var(--brd); text-align:center;">
-            <img id="u-av" style="width:80px; height:80px; border-radius:50%; border:2px solid var(--p); margin-bottom:15px;">
-            <div id="u-name" style="font-weight:900; color:var(--p);">@USER</div>
-            <div id="u-stars" style="font-size:20px; margin-top:5px;">0 ⭐</div>
+<div id="user-modal" onclick="this.style.display='none'">
+    <div class="profile-card" onclick="event.stopPropagation()">
+        <img id="m-av" src="">
+        <h2 id="m-name" style="margin: 5px 0; color: var(--p);"></h2>
+        <p id="m-stars" style="font-size: 20px; font-weight: 800;"></p>
+        <div id="m-role" style="font-size: 12px; opacity: 0.5; margin-bottom: 20px;"></div>
+        <div id="admin-actions" style="display:none; border-top: 1px solid #333; pt: 15px;">
+             <button class="btn-p" style="background:#ff4444; width: 100%;" onclick="muteUser()">MUTE USER</button>
         </div>
-        <nav style="flex:1; padding-top:20px;">
-            <div class="nav-item active" onclick="tab('chat', this)">📡 Global Chat</div>
-            <div class="nav-item" onclick="tab('market', this)">💎 Fragment NFT</div>
-            <div class="nav-item" onclick="tab('bank', this)">🏦 Central Bank</div>
-            <div id="adm-nav" class="nav-item" style="display:none; color:#ff4444;" onclick="tab('admin', this)">⚡ Root Control</div>
-        </nav>
-        <div style="padding:20px; color:var(--muted); font-size:10px; text-align:center;">MOPSOGRAM v22.0.4</div>
+    </div>
+</div>
+
+<div class="app" id="app-ui">
+    <aside class="chat-list">
+        <div class="chat-header">
+            <span style="font-family:'Orbitron'; color:var(--p); font-size:14px;">MOPSOGRAM</span>
+            <button class="btn-p" style="padding: 5px 10px; font-size:10px;" onclick="location.reload()">OFF</button>
+        </div>
+        
+        <div class="chat-item active" onclick="setTab('chat')">
+            <div style="width:45px; height:45px; background:var(--p); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#000; font-weight:900;">G</div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">Global Chat</div>
+                <div style="font-size:11px; color:#555;">Server broadcast...</div>
+            </div>
+        </div>
+
+        <div class="chat-item" onclick="setTab('market')">
+            <div style="width:45px; height:45px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--p); font-weight:900;">F</div>
+            <div>
+                <div style="font-weight:700; font-size:14px;">Fragment Market</div>
+                <div style="font-size:11px; color:#555;">Buy/Sell Usernames</div>
+            </div>
+        </div>
+
+        <div id="adm-item" class="chat-item" style="display:none; border: 1px solid #ff444466;" onclick="setTab('admin')">
+            <div style="width:45px; height:45px; background:#ff4444; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900;">A</div>
+            <div>
+                <div style="font-weight:700; font-size:14px; color:#ff4444;">Admin Panel</div>
+                <div style="font-size:11px; color:#555;">Manage users & codes</div>
+            </div>
+        </div>
     </aside>
 
-    <main class="viewport">
-        <header style="height:60px; border-bottom:1px solid var(--brd); display:flex; align-items:center; padding:0 25px; justify-content:space-between;">
-            <span id="tab-title" style="font-family:'Orbitron'; font-size:12px; letter-spacing:2px;">TERMINAL_CHAT</span>
-            <span id="status" style="color:#00ff88; font-size:10px; animation:pulse 2s infinite;">● ONLINE</span>
+    <main class="main-chat">
+        <header class="chat-top">
+            <img id="top-av" class="avatar-sm" src="">
+            <div style="margin-left: 15px;">
+                <div id="top-name" style="font-weight:700; font-size:14px;">@USER</div>
+                <div id="top-status" style="font-size:10px; color:#00ff88;">online</div>
+            </div>
+            <div style="margin-left: auto; font-family:'JetBrains Mono'; color:var(--p);" id="my-balance">0 ⭐</div>
         </header>
 
-        <div id="view-chat" class="tab-content" style="display:flex; flex-direction:column; height:100%;">
-            <div id="chat-engine"></div>
-            <div class="input-group">
-                <input type="text" id="chat-input" placeholder="Type encrypted message...">
-                <button class="btn" onclick="sendMsg()">SEND</button>
+        <div id="view-chat" style="display:contents;">
+            <div id="messages-view"></div>
+            <div class="input-area">
+                <input type="text" id="m-input" placeholder="Write a message..." onkeypress="if(event.key==='Enter') send()">
+                <button class="btn-p" onclick="send()">➔</button>
             </div>
         </div>
 
-        <div id="view-market" class="tab-content" style="display:none; overflow-y:auto;">
-            <div style="padding:25px;">
-                <h1 style="color:var(--p); font-family:'Orbitron';">FRAGMENT MARKET</h1>
-                <p style="color:var(--muted)">Sell your username as NFT or buy premium ones.</p>
-                <div class="market-grid" id="market-list"></div>
-            </div>
+        <div id="view-market" style="display:none; padding: 40px; overflow-y:auto;">
+             <h2 style="font-family:'Orbitron'; color:var(--p)">FRAGMENT MARKET</h2>
+             <p style="color:#666">NFT Usernames currently on auction</p>
+             <div id="market-list" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top:20px;">
+                 </div>
         </div>
 
-        <div id="view-bank" class="tab-content" style="display:none; padding:40px;">
-            <div class="auth-box" style="width:100%; max-width:500px; margin:0 auto; text-align:left;">
-                <h3>REDEEM STAR-CHECK</h3>
-                <input type="text" id="check-code" placeholder="FRGM-XXXX-XXXX" style="width:100%; margin-bottom:15px;">
-                <button class="btn" onclick="redeemCheck()">ACTIVATE CODE</button>
-            </div>
-        </div>
-
-        <div id="view-admin" class="tab-content" style="display:none; padding:40px;">
-            <h1 style="color:#ff4444;">ROOT_TERMINAL</h1>
-            <div style="background:var(--side); padding:25px; border-radius:20px; border:1px solid #ff4444;">
-                <h3>GENERATE STAR-CHECK</h3>
-                <input type="number" id="gen-amt" placeholder="Stars Amount" style="width:200px;">
-                <button class="btn" style="background:#ff4444" onclick="createCheck()">GENERATE CODE</button>
-                <div id="gen-res" style="margin-top:20px; font-family:'JetBrains Mono'; color:var(--p);"></div>
+        <div id="view-admin" style="display:none; padding: 40px;">
+            <h2 style="color:#ff4444; font-family:'Orbitron';">ROOT_ACCESS</h2>
+            <div style="background:var(--side); padding: 30px; border-radius:20px; border:1px solid #ff4444;">
+                <label>Create Star-Check</label><br><br>
+                <input type="number" id="check-val" placeholder="Amount" style="width: 150px; margin-right:10px;">
+                <button class="btn-p" onclick="genCheck()">GENERATE</button>
+                <div id="check-out" style="margin-top:20px; font-family: 'JetBrains Mono'; color: var(--p);"></div>
             </div>
         </div>
     </main>
@@ -138,135 +165,116 @@
     const sb = supabase.createClient(S_URL, S_KEY);
 
     let user = null;
+    let selectedUser = null; // Для модалки
 
-    async function auth() {
-        const u = document.getElementById('log-u').value.trim();
-        const p = document.getElementById('log-p').value.trim();
+    async function login() {
+        const u = document.getElementById('auth-u').value.trim();
+        const p = document.getElementById('auth-p').value.trim();
+        if(!u || !p) return;
+
         const nick = u.startsWith('@') ? u : '@' + u;
-
         let { data: ex } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
 
         if(!ex) {
-            const { data: n, error } = await sb.from('users').insert([{ username: nick, password: p, stars: 500, role: nick === '@admin' ? 'admin' : 'user' }]).select().single();
+            const { data: n } = await sb.from('users').insert([{ username: nick, password: p, stars: 1000, role: nick === '@admin' ? 'admin' : 'user' }]).select().single();
             user = n;
         } else {
-            if(ex.password !== p) return notify("ACCESS DENIED: WRONG PASSWORD", "#ff4444");
+            if(ex.password !== p) return alert("Wrong password");
             user = ex;
         }
 
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        if(user.role === 'admin') document.getElementById('adm-nav').style.display = 'block';
-        
-        init();
+        startApp();
     }
 
-    function init() {
-        updateUI();
-        syncChat();
-        syncMarket();
+    function startApp() {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-ui').style.display = 'flex';
+        if(user.role === 'admin') document.getElementById('adm-item').style.display = 'flex';
         
-        sb.channel('any').on('postgres_changes', { event: '*', schema: 'public' }, (p) => {
-            if(p.table === 'messages') syncChat();
-            if(p.table === 'users' && p.new.id === user.id) { user = p.new; updateUI(); }
+        document.getElementById('top-name').innerText = user.username;
+        document.getElementById('top-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${user.username}`;
+        
+        updateBalance();
+        loadMessages();
+        loadMarket();
+
+        // Realtime
+        sb.channel('db').on('postgres_changes', { event: '*', schema: 'public' }, (pl) => {
+            if(pl.table === 'messages') loadMessages();
+            if(pl.table === 'users' && pl.new.id === user.id) { user = pl.new; updateBalance(); }
         }).subscribe();
     }
 
-    async function syncChat() {
+    async function loadMessages() {
         const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true });
-        const engine = document.getElementById('chat-engine');
-        engine.innerHTML = '';
+        const view = document.getElementById('messages-view');
+        view.innerHTML = '';
         msgs?.forEach(m => {
             const isMe = m.username === user.username;
-            const isAdmin = user.role === 'admin';
-            engine.innerHTML += `
-                <div class="msg ${isMe ? 'me' : ''}">
-                    <div style="font-size:10px; color:var(--muted); margin:0 5px 3px;">${m.username}</div>
-                    <div class="bubble">${m.text}</div>
-                    ${isAdmin ? `<div class="admin-tools">
-                        <span onclick="delMsg(${m.id})">DELETE</span>
-                        <span onclick="muteUser('${m.username}')">MUTE</span>
-                    </div>` : ''}
+            view.innerHTML += `
+                <div class="bubble ${isMe ? 'out' : 'in'}" onclick="showProfile('${m.username}')">
+                    <div style="font-size:10px; opacity:0.5; margin-bottom:4px;">${m.username}</div>
+                    ${m.text}
                 </div>`;
         });
-        engine.scrollTop = engine.scrollHeight;
+        view.scrollTop = view.scrollHeight;
     }
 
-    async function sendMsg() {
-        const i = document.getElementById('chat-input');
-        if(!i.value || user.is_muted) return notify(user.is_muted ? "YOU ARE MUTED" : "EMPTY", "#ff4444");
+    async function showProfile(nick) {
+        const { data: p } = await sb.from('users').select('*').eq('username', nick).single();
+        if(!p) return;
+        selectedUser = p;
+        document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${p.username}`;
+        document.getElementById('m-name').innerText = p.username;
+        document.getElementById('m-stars').innerText = p.stars + " ⭐";
+        document.getElementById('m-role').innerText = p.role.toUpperCase();
+        document.getElementById('admin-actions').style.display = user.role === 'admin' ? 'block' : 'none';
+        document.getElementById('user-modal').style.display = 'flex';
+    }
+
+    async function send() {
+        const i = document.getElementById('m-input');
+        if(!i.value.trim() || user.is_muted) return;
         await sb.from('messages').insert({ username: user.username, text: i.value });
         i.value = '';
     }
 
-    // FRAGMENT LOGIC
-    async function syncMarket() {
-        // Здесь мы просто имитируем рынок юзернеймов из таблицы users
-        const { data: users } = await sb.from('users').select('username, stars').limit(10);
+    function updateBalance() {
+        document.getElementById('my-balance').innerText = user.stars.toLocaleString() + " ⭐";
+    }
+
+    function setTab(name) {
+        document.getElementById('view-chat').style.display = name === 'chat' ? 'contents' : 'none';
+        document.getElementById('view-market').style.display = name === 'market' ? 'block' : 'none';
+        document.getElementById('view-admin').style.display = name === 'admin' ? 'block' : 'none';
+    }
+
+    async function genCheck() {
+        const val = document.getElementById('check-val').value;
+        const code = "FRGM-" + Math.random().toString(36).toUpperCase().substr(2,8);
+        await sb.from('checks').insert({ code, amount: val });
+        document.getElementById('check-out').innerText = "CODE: " + code;
+    }
+
+    async function loadMarket() {
+        const { data: users } = await sb.from('users').select('username').limit(8);
         const list = document.getElementById('market-list');
         list.innerHTML = '';
         users.forEach(u => {
             list.innerHTML += `
-                <div class="nft-card">
-                    <div class="nft-name">${u.username}</div>
-                    <div style="font-size:12px; margin-bottom:15px;">Price: 2,500 ⭐</div>
-                    <button class="btn" style="width:100%; font-size:10px;" onclick="notify('Fragment Auction in Progress...')">BID</button>
+                <div style="background:#111; padding:15px; border-radius:15px; text-align:center; border:1px solid var(--brd);">
+                    <div style="color:var(--p); font-family:'JetBrains Mono'; font-size:12px;">${u.username}</div>
+                    <div style="font-size:14px; margin: 10px 0;">5,000 ⭐</div>
+                    <button class="btn-p" style="font-size:10px; width:100%;">BID</button>
                 </div>`;
         });
     }
 
-    // BANK LOGIC
-    async function createCheck() {
-        const amt = document.getElementById('gen-amt').value;
-        const code = "FRGM-" + Math.random().toString(36).substr(2,9).toUpperCase();
-        await sb.from('checks').insert({ code, amount: amt });
-        document.getElementById('gen-res').innerText = "CODE: " + code;
-    }
-
-    async function redeemCheck() {
-        const c = document.getElementById('check-code').value;
-        const { data: check } = await sb.from('checks').select('*').eq('code', c).eq('is_used', false).maybeSingle();
-        
-        if(check) {
-            await sb.from('checks').update({ is_used: true }).eq('id', check.id);
-            await sb.from('users').update({ stars: user.stars + check.amount }).eq('id', user.id);
-            notify(`RECEIVED ${check.amount} STARS!`);
-        } else {
-            notify("INVALID OR USED CODE", "#ff4444");
-        }
-    }
-
-    // ADMIN MODERATION
-    async function delMsg(id) {
-        await sb.from('messages').delete().eq('id', id);
-        notify("MESSAGE REMOVED");
-    }
-
-    async function muteUser(target) {
-        await sb.from('users').update({ is_muted: true }).eq('username', target);
-        notify(target + " MUTED");
-    }
-
-    // UI HELPER
-    function updateUI() {
-        document.getElementById('u-name').innerText = user.username;
-        document.getElementById('u-stars').innerText = (user.stars || 0).toLocaleString() + " ⭐";
-        document.getElementById('u-av').src = `https://api.dicebear.com/7.x/shapes/svg?seed=${user.username}`;
-    }
-
-    function tab(name, el) {
-        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('view-' + name).style.display = name === 'chat' ? 'flex' : 'block';
-        document.getElementById('tab-title').innerText = "TERMINAL_" + name.toUpperCase();
-        el.classList.add('active');
-    }
-
-    function notify(m, bg = "#ff9000") {
-        const t = document.getElementById('toast');
-        t.innerText = m; t.style.background = bg;
-        t.style.transform = "translateX(0)";
-        setTimeout(() => t.style.transform = "translateX(200%)", 3000);
+    async function muteUser() {
+        if(!selectedUser) return;
+        await sb.from('users').update({ is_muted: true }).eq('id', selectedUser.id);
+        alert(selectedUser.username + " muted!");
+        document.getElementById('user-modal').style.display = 'none';
     }
 </script>
 </body>
