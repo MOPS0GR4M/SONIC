@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MOPSOGRAM 26.0 | PROFILE UPDATE</title>
+    <title>MOPSOGRAM 27.0 | FINAL FIX</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -13,118 +13,119 @@
         * { box-sizing: border-box; outline: none; transition: 0.2s; }
         body, html { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
 
-        .btn { background: var(--p); border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; width: 100%; }
+        /* Элементы управления */
+        .btn { background: var(--p); border: none; padding: 12px; border-radius: 12px; font-weight: 900; cursor: pointer; color: #000; width: 100%; font-size: 13px; }
+        .btn:hover { opacity: 0.8; transform: scale(0.98); }
         input { background: #111; border: 1px solid var(--brd); padding: 12px; border-radius: 12px; color: #fff; width: 100%; margin-bottom: 10px; font-family: 'JetBrains Mono'; }
+        input:focus { border-color: var(--p); }
 
-        /* APP LAYOUT */
+        /* Сетка приложения */
         #app { display: none; height: 100vh; width: 100vw; flex-direction: row; }
-        .sidebar { width: 300px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
+        .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--brd); display: flex; flex-direction: column; }
         .viewport { flex: 1; display: flex; flex-direction: column; background: var(--chat); }
 
-        /* САЙДБАР ПРОФИЛЬ */
-        .my-profile-card { 
-            padding: 30px 20px; 
-            background: linear-gradient(to bottom, #111, #0a0a0a);
-            border-bottom: 1px solid var(--brd);
-            text-align: center;
-            cursor: pointer;
-        }
-        .my-profile-card:hover { background: #161616; }
-        .my-av-main { width: 70px; height: 70px; border-radius: 25px; border: 2px solid var(--p); margin-bottom: 12px; }
+        /* Сайдбар Профиль */
+        .side-profile { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--brd); cursor: pointer; background: linear-gradient(180deg, #111 0%, #0a0a0a 100%); }
+        .side-profile:hover { background: #161616; }
+        .side-av { width: 80px; height: 80px; border-radius: 30px; border: 2px solid var(--p); margin-bottom: 10px; box-shadow: 0 0 15px rgba(255,144,0,0.2); }
 
-        .nav-item { padding: 15px 20px; cursor: pointer; color: #666; font-weight: 700; font-size: 12px; text-transform: uppercase; }
+        .nav-item { padding: 15px 25px; cursor: pointer; color: #555; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
         .nav-item.active { background: var(--p); color: #000; border-radius: 0 50px 50px 0; margin-right: 10px; }
 
-        /* ЧАТ */
-        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .m-wrap { display: flex; flex-direction: column; max-width: 80%; cursor: pointer; align-self: flex-start; }
+        /* Чат */
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .m-wrap { display: flex; flex-direction: column; max-width: 80%; align-self: flex-start; cursor: pointer; }
         .m-wrap.me { align-self: flex-end; }
-        .bubble { padding: 12px 16px; border-radius: 18px; background: #111; border: 1px solid var(--brd); position: relative; }
+        .bubble { padding: 12px 16px; border-radius: 18px; background: #111; border: 1px solid var(--brd); font-size: 14px; line-height: 1.4; }
         .me .bubble { border-color: var(--p); background: #1a1300; }
-        .u-label { font-size: 10px; font-weight: 800; color: var(--p); margin-bottom: 4px; padding-left: 5px; }
+        .u-label { font-size: 10px; font-weight: 900; color: var(--p); margin-bottom: 4px; padding-left: 5px; }
 
-        /* MODAL */
-        #prof-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .p-card { background: var(--side); width: 320px; border-radius: 35px; border: 1px solid var(--brd); padding: 35px; text-align: center; }
+        /* Модалка Профиля */
+        #prof-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .p-card { background: var(--side); width: 320px; border-radius: 40px; border: 1px solid var(--brd); padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .p-av-big { width: 120px; height: 120px; border-radius: 40px; border: 3px solid var(--p); margin-bottom: 20px; }
 
-        #notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150px); background: var(--p); color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 800; z-index: 10000; transition: 0.5s; }
+        /* Уведомления */
+        #notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150px); background: var(--p); color: #000; padding: 12px 30px; border-radius: 50px; font-weight: 900; z-index: 10000; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     </style>
 </head>
 <body>
 
-<div id="notify">SYSTEM</div>
+<div id="notify">SYSTEM_READY</div>
 
 <div id="auth-scr" style="position:fixed; inset:0; background:#000; z-index:8000; display:flex; align-items:center; justify-content:center;">
-    <div style="width:280px; text-align:center;">
+    <div style="width:300px; text-align:center;">
         <h1 style="font-family:'Orbitron'; color:var(--p); margin-bottom:10px;">MOPSOGRAM</h1>
-        <p style="font-size:10px; color:#444; margin-bottom:25px;">Enter credentials to sync</p>
+        <p style="color:#444; font-size:11px; margin-bottom:30px;">Fragment NFT Authentication</p>
         <input type="text" id="log-u" placeholder="@username">
         <input type="password" id="log-p" placeholder="password">
-        <button class="btn" onclick="login()">LOGIN / REGISTER</button>
+        <button class="btn" onclick="login()">SYNC DATA</button>
     </div>
 </div>
 
 <div id="prof-modal" onclick="this.style.display='none'">
     <div class="p-card" onclick="event.stopPropagation()">
-        <img id="m-av" style="width:110px; height:110px; border-radius:35px; border:3px solid var(--p); margin-bottom:15px;">
-        <h2 id="m-nick" style="margin:0; color:var(--p); font-family:'Orbitron'; font-size:18px;"></h2>
-        <div id="m-stars" style="font-size:24px; font-weight:900; margin:10px 0;"></div>
-        <div id="m-role" style="font-size:10px; opacity:0.5; letter-spacing:2px; margin-bottom:25px;"></div>
+        <img id="m-av" class="p-av-big">
+        <h2 id="m-nick" style="margin:0; color:var(--p); font-family:'Orbitron';"></h2>
+        <div id="m-stars" style="font-size:26px; font-weight:900; margin:15px 0;"></div>
+        <div id="m-role" style="font-size:10px; opacity:0.4; letter-spacing:2px; margin-bottom:30px;">LEVEL_USER</div>
+        
         <div id="m-admin-tools" style="display:none; border-top:1px solid #222; padding-top:20px;">
-            <button class="btn" style="background:#ff4444; color:#fff" onclick="adminMute()">BLOCK ACCESS (MUTE)</button>
+            <button class="btn" style="background:#ff4444; color:#fff" onclick="adminMute()">TERMINATE ACCESS (MUTE)</button>
         </div>
     </div>
 </div>
 
 <div id="app">
     <aside class="sidebar">
-        <div class="my-profile-card" onclick="openMyProfile()">
-            <img id="ui-av" class="my-av-main">
-            <div id="ui-nick" style="font-weight:900; color:var(--p); font-size:16px;"></div>
-            <div id="ui-stars" style="font-size:12px; color:#00ff88; font-family:monospace; margin-top:4px;"></div>
+        <div class="side-profile" onclick="openMyProfile()">
+            <img id="ui-av" class="side-av">
+            <div id="ui-nick" style="font-weight:900; color:var(--p);">@GUEST</div>
+            <div id="ui-stars" style="font-size:14px; font-family:monospace; margin-top:5px; color:#00ff88;">0 ⭐</div>
         </div>
 
-        <nav style="flex:1; padding-top:10px;">
-            <div class="nav-item active" onclick="setTab('chat', this)">📡 CHAT ROOM</div>
-            <div class="nav-item" onclick="setTab('market', this)">💎 MINT USERNAME</div>
-            <div class="nav-item" onclick="setTab('bank', this)">🏦 STAR BANK</div>
-            <div id="ui-admin-nav" class="nav-item" style="display:none; color:#ff4444;" onclick="setTab('admin', this)">⚡ ROOT CONTROL</div>
+        <nav style="flex:1; padding-top:20px;">
+            <div class="nav-item active" onclick="setTab('chat', this)">📡 TERMINAL</div>
+            <div class="nav-item" onclick="setTab('market', this)">💎 MINT NICK</div>
+            <div class="nav-item" onclick="setTab('bank', this)">🏦 BANK</div>
+            <div id="ui-admin-nav" class="nav-item" style="display:none; color:#ff4444;" onclick="setTab('admin', this)">⚡ ROOT</div>
         </nav>
-        <div style="padding:20px;"><button class="btn" style="background:#111; color:#555; font-size:10px;" onclick="location.reload()">DISCONNECT SESSION</button></div>
+        <div style="padding:20px;"><button class="btn" style="background:#111; color:#444; font-size:10px;" onclick="location.reload()">LOGOUT</button></div>
     </aside>
 
     <main class="viewport">
         <div id="tab-chat" class="tab" style="display:flex; flex-direction:column; height:100%;">
             <div id="chat-box"></div>
-            <div style="padding:20px; background:var(--side); border-top:1px solid var(--brd); display:flex; gap:10px;">
-                <input type="text" id="msg-i" placeholder="Write a message..." style="margin:0;" onkeypress="if(event.key==='Enter') send()">
+            <div style="padding:20px; background:var(--side); display:flex; gap:10px; border-top:1px solid var(--brd);">
+                <input type="text" id="msg-i" placeholder="Command..." style="margin:0;" onkeypress="if(event.key==='Enter') send()">
                 <button class="btn" onclick="send()" style="width:60px;">➔</button>
             </div>
         </div>
 
         <div id="tab-market" class="tab" style="display:none; padding:40px;">
-            <h2>USERNAME FRAGMENT</h2>
-            <p style="color:#666">Change your digital identity for free.</p>
-            <input type="text" id="mint-i" placeholder="New @nick...">
-            <button class="btn" onclick="mint()">RE-MINT NICKNAME</button>
+            <h2 style="font-family:'Orbitron'; color:var(--p);">NICKNAME MINT</h2>
+            <p style="color:#555">Choose your digital ID (Free Mint)</p>
+            <input type="text" id="mint-i" placeholder="New @username...">
+            <button class="btn" onclick="mint()">CONFIRM MINT</button>
         </div>
 
         <div id="tab-bank" class="tab" style="display:none; padding:40px;">
-            <h2>REDEEM STAR-CHECK</h2>
+            <h2 style="font-family:'Orbitron'; color:var(--p);">BANK TERMINAL</h2>
             <input type="text" id="check-i" placeholder="MOPSO_SONIX_XXXXX">
-            <button class="btn" onclick="redeem()">ACTIVATE</button>
+            <button class="btn" onclick="redeem()">REDEEM CHECK</button>
         </div>
 
         <div id="tab-admin" class="tab" style="display:none; padding:40px;">
-            <h2 style="color:#ff4444;">ROOT GENERATOR</h2>
+            <h2 style="color:#ff4444; font-family:'Orbitron';">ROOT_GENERATOR</h2>
             <input type="number" id="gen-a" placeholder="Amount of Stars">
             <button class="btn" style="background:#ff4444; color:#fff;" onclick="gen()">GENERATE CHECK</button>
-            <div id="gen-res" style="margin-top:20px; color:var(--p); font-family:monospace; word-break:break-all; background:#111; padding:15px; border-radius:10px;"></div>
+            <div id="gen-res" style="margin-top:20px; color:var(--p); font-family:monospace; background:#111; padding:15px; border-radius:10px; border:1px solid #ff444433;"></div>
         </div>
     </main>
 </div>
 
 <script>
+    // КОНФИГУРАЦИЯ SUPABASE
     const S_URL = 'https://obqwgeusngfpboklrwob.supabase.co';
     const S_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9icXdnZXVzbmdmcGJva2xyd29iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MzEwNDAsImV4cCI6MjA4OTUwNzA0MH0.7iFZdM_Hqjb_B3gGzNeAdZngRhy1sSoz2MR_VfuBK3U';
     const sb = supabase.createClient(S_URL, S_KEY);
@@ -132,69 +133,79 @@
     let currUser = null;
     let viewTarget = null;
 
+    // ЛОГИКА АВТОРИЗАЦИИ
     async function login() {
         const u = document.getElementById('log-u').value.trim();
         const p = document.getElementById('log-p').value.trim();
         if(!u || !p) return;
         const nick = u.startsWith('@') ? u : '@' + u;
 
-        // Поиск юзера
-        let { data: user } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
+        try {
+            // Ищем юзера
+            let { data: user, error } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
+            
+            if (!user) {
+                // Создаем нового
+                const { data: n, error: e2 } = await sb.from('users').insert([
+                    { username: nick, password: p, stars: 1000, role: nick === '@admin' ? 'admin' : 'user' }
+                ]).select().single();
+                if(e2) throw e2;
+                currUser = n;
+            } else {
+                // Проверяем пароль
+                if(user.password !== p) return toast("ACCESS DENIED: WRONG PASS", "#ff4444");
+                currUser = user;
+            }
 
-        if(!user) {
-            // Регистрация нового
-            const { data: newUser, error } = await sb.from('users').insert([{ username: nick, password: p, stars: 500, role: nick === '@admin' ? 'admin' : 'user' }]).select().single();
-            if(error) return toast("Error creating user");
-            currUser = newUser;
-        } else {
-            // Проверка пароля существующего
-            if(user.password !== p) return toast("WRONG PASSWORD!");
-            currUser = user;
+            document.getElementById('auth-scr').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            if(currUser.role === 'admin') document.getElementById('ui-admin-nav').style.display = 'block';
+            
+            init();
+            toast("SYNC SUCCESSFUL");
+        } catch (e) {
+            console.error(e);
+            toast("DB ERROR: " + e.message, "#ff4444");
         }
-
-        document.getElementById('auth-scr').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        if(currUser.role === 'admin') document.getElementById('ui-admin-nav').style.display = 'block';
-        
-        init();
     }
 
     function init() {
         updateUI();
         loadChat();
-        // Слушаем изменения
-        sb.channel('db-sync').on('postgres_changes', { event: '*', schema: 'public' }, (p) => {
-            if(p.table === 'messages') loadChat();
-            if(p.table === 'users' && p.new && p.new.id === currUser.id) { 
-                currUser = p.new; 
-                updateUI(); 
+        
+        // Реалтайм подписки
+        sb.channel('global').on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+            if(payload.table === 'messages') loadChat();
+            if(payload.table === 'users' && payload.new && payload.new.id === currUser.id) {
+                currUser = payload.new;
+                updateUI();
             }
         }).subscribe();
     }
 
     async function loadChat() {
         const { data: msgs } = await sb.from('messages').select('*').order('created_at', { ascending: true });
-        const container = document.getElementById('chat-box');
-        container.innerHTML = '';
+        const box = document.getElementById('chat-box');
+        box.innerHTML = '';
         msgs?.forEach(m => {
             const isMe = m.username === currUser.username;
-            container.innerHTML += `
+            box.innerHTML += `
                 <div class="m-wrap ${isMe ? 'me' : ''}" onclick="openProfile('${m.username}')">
                     <div class="u-label">${m.username}</div>
                     <div class="bubble">${m.text}</div>
                 </div>`;
         });
-        container.scrollTop = container.scrollHeight;
+        box.scrollTop = box.scrollHeight;
     }
 
     async function send() {
-        const input = document.getElementById('msg-i');
-        if(!input.value.trim() || currUser.is_muted) return;
-        const text = input.value; input.value = '';
-        await sb.from('messages').insert({ username: currUser.username, text: text });
+        const i = document.getElementById('msg-i');
+        if(!i.value.trim() || currUser.is_muted) return;
+        const txt = i.value; i.value = '';
+        await sb.from('messages').insert({ username: currUser.username, text: txt });
     }
 
-    // ОТКРЫТИЕ ЧУЖОГО ПРОФИЛЯ (ИЗ ЧАТА)
+    // ПРОФИЛИ
     async function openProfile(nick) {
         const { data: p } = await sb.from('users').select('*').eq('username', nick).single();
         if(!p) return;
@@ -202,7 +213,6 @@
         showModal(p);
     }
 
-    // ОТКРЫТИЕ СВОЕГО ПРОФИЛЯ (ИЗ САЙДБАРА)
     function openMyProfile() {
         viewTarget = currUser;
         showModal(currUser);
@@ -211,33 +221,31 @@
     function showModal(u) {
         document.getElementById('m-nick').innerText = u.username;
         document.getElementById('m-stars').innerText = u.stars + " ⭐";
-        document.getElementById('m-role').innerText = "IDENTIFIED AS " + u.role.toUpperCase();
         document.getElementById('m-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${u.username}`;
         
-        // Админские кнопки видны только если смотришь на чужой профиль
         const isSelf = u.id === currUser.id;
         document.getElementById('m-admin-tools').style.display = (currUser.role === 'admin' && !isSelf) ? 'block' : 'none';
-        
         document.getElementById('prof-modal').style.display = 'flex';
     }
 
+    // ОСТАЛЬНАЯ ЛОГИКА
     async function mint() {
-        const newNick = document.getElementById('mint-i').value.trim();
-        const formatted = newNick.startsWith('@') ? newNick : '@' + newNick;
+        const n = document.getElementById('mint-i').value.trim();
+        const formatted = n.startsWith('@') ? n : '@' + n;
         const { data: ex } = await sb.from('users').select('*').eq('username', formatted).maybeSingle();
-        if(ex) return toast("NICK ALREADY TAKEN");
+        if(ex) return toast("NICK ALREADY CLAIMED", "#ff4444");
         await sb.from('users').update({ username: formatted }).eq('id', currUser.id);
-        toast("SUCCESS! RECONNECTING..."); 
+        toast("MINTED! RELOADING...");
         setTimeout(() => location.reload(), 1500);
     }
 
     async function redeem() {
         const code = document.getElementById('check-i').value.trim();
         const { data: c } = await sb.from('checks').select('*').eq('code', code).eq('is_used', false).maybeSingle();
-        if(!c) return toast("INVALID OR USED CHECK");
+        if(!c) return toast("INVALID OR EXPIRED", "#ff4444");
         await sb.from('checks').update({ is_used: true }).eq('id', c.id);
         await sb.from('users').update({ stars: currUser.stars + c.amount }).eq('id', currUser.id);
-        toast("CREDITED: " + c.amount + " ⭐");
+        toast("RECEIVED " + c.amount + " ⭐");
     }
 
     async function gen() {
@@ -250,13 +258,13 @@
     async function adminMute() {
         if(!viewTarget) return;
         await sb.from('users').update({ is_muted: true }).eq('id', viewTarget.id);
-        toast("USER RESTRICTED");
+        toast("USER TERMINATED");
         document.getElementById('prof-modal').style.display = 'none';
     }
 
     function updateUI() {
         document.getElementById('ui-nick').innerText = currUser.username;
-        document.getElementById('ui-stars').innerText = currUser.stars.toLocaleString() + " ⭐";
+        document.getElementById('ui-stars').innerText = currUser.stars + " ⭐";
         document.getElementById('ui-av').src = `https://api.dicebear.com/7.x/bottts-neutral/svg?seed=${currUser.username}`;
     }
 
@@ -267,9 +275,10 @@
         el.classList.add('active');
     }
 
-    function toast(m) {
+    function toast(m, bg = "#ff9000") {
         const t = document.getElementById('notify');
-        t.innerText = m; t.style.transform = "translateX(-50%) translateY(0)";
+        t.innerText = m; t.style.background = bg;
+        t.style.transform = "translateX(-50%) translateY(0)";
         setTimeout(() => t.style.transform = "translateX(-50%) translateY(-150px)", 3000);
     }
 </script>
