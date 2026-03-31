@@ -1,236 +1,255 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mopsogram X - NFT & Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOPSOGRAMA v1.0 - TOP SECRET</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Comic Sans MS', cursive; cursor: crosshair; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
+        
+        /* Mopsograma Boot Screen */
+        #boot-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1a1a1a; color: #fff; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 2000;
+        }
+        .mops-logo { font-size: 100px; animation: pulse 0.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-<style>
-body{margin:0;font-family:'Segoe UI';background:#0b0b0b;color:#fff;}
-.auth{display:flex;height:100vh;justify-content:center;align-items:center;}
-.auth-box{background:#111;padding:30px;border-radius:20px;box-shadow:0 0 50px rgba(255,140,0,0.4);width:320px;}
-.auth-box h2{text-align:center;color:orange;}
-.auth-box input{width:100%;margin-top:10px;padding:12px;border:none;border-radius:12px;background:#1a1a1a;color:white;}
-.auth-box button{width:100%;margin-top:12px;padding:12px;background:linear-gradient(45deg,orange,#ff6a00);border:none;border-radius:12px;cursor:pointer;font-weight:bold;}
-.app{display:none;}
-.sidebar{width:320px;height:100vh;background:#0f0f0f;position:fixed;border-right:1px solid #222;overflow:auto;}
-.logo{padding:20px;font-size:22px;text-align:center;color:orange;font-weight:bold;}
-.profile{padding:15px;border-bottom:1px solid #222;}
-.username{color:orange;font-weight:bold;}
-.subuser{font-size:12px;color:#aaa;}
-.section{padding:12px;border-bottom:1px solid #222;}
-.market-item{background:#1a1a1a;border:1px solid orange;border-radius:12px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-.btn{background:orange;border:none;border-radius:10px;padding:6px 10px;cursor:pointer;color:#000;font-weight:bold;}
-.main{margin-left:320px;display:flex;flex-direction:column;height:100vh;}
-.topbar{padding:12px;background:#0f0f0f;border-bottom:1px solid #222;display:flex;justify-content:space-between;}
-.messages{flex:1;padding:20px;overflow:auto;display:flex;flex-direction:column;}
-.msg{max-width:60%;padding:10px 14px;border-radius:16px;margin-bottom:10px;animation:fadeIn 0.3s;}
-.me{background:orange;align-self:flex-end;color:black;}
-.other{background:#1a1a1a;align-self:flex-start;}
-.input{display:flex;padding:10px;background:#0f0f0f;}
-.input input{flex:1;padding:12px;border-radius:20px;border:none;background:#1a1a1a;color:white;}
-.input button{margin-left:10px;background:orange;border:none;padding:10px 15px;border-radius:50%;}
-.balance{color:orange;font-weight:bold;}
-.admin-section{padding:12px;border-top:1px solid #222;margin-top:10px;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-</style>
+        /* General Loader */
+        #loader { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #000; color: #f0f; display: none; flex-direction: column; 
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .progress-bar { width: 80%; max-width: 600px; height: 40px; border: 6px solid #f0f; position: relative; overflow: hidden; }
+        .progress-fill { width: 0%; height: 100%; background: repeating-linear-gradient(45deg, #f0f, #f0f 10px, #0ff 10px, #0ff 20px); }
+        
+        /* Extreme Distortion */
+        .insane-mode { animation: flash 0.05s infinite, shake 0.1s infinite; }
+        @keyframes flash { 0% { background: #ff00ff; } 50% { background: #00ffff; } 100% { background: #ffff00; } }
+        @keyframes shake {
+            0% { filter: contrast(200%) invert(0); transform: translate(2px, 2px); }
+            50% { filter: contrast(500%) invert(1); transform: translate(-2px, -2px); }
+            100% { filter: contrast(200%) invert(0); transform: translate(2px, -2px); }
+        }
+
+        #bsod {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0000ff; color: #fff; padding: 50px; display: none; z-index: 3000;
+            font-family: 'Courier New', monospace;
+        }
+
+        .score-ui { position: absolute; top: 5%; width: 100%; text-align: center; color: yellow; font-size: 80px; font-weight: 900; display: none; z-index: 500; }
+        
+        .crazy-text {
+            position: absolute; color: white; font-weight: bold; pointer-events: none;
+            white-space: nowrap; z-index: 600; text-shadow: 2px 2px #ff0000;
+        }
+    </style>
 </head>
 <body>
 
-<div class="auth" id="auth">
-  <div class="auth-box">
-    <h2>🔥 Mopsogram</h2>
-    <input id="email" placeholder="Email">
-    <input id="code" placeholder="Код">
-    <input id="username" placeholder="@username">
-    <button onclick="sendCode()">Получить код</button>
-    <button onclick="verifyCode()">Войти</button>
-  </div>
-</div>
+    <div id="boot-screen">
+        <div class="mops-logo">🐶</div>
+        <div style="font-size: 24px; letter-spacing: 10px;">MOPSOGRAMA 1.0</div>
+        <div style="margin-top: 20px; font-family: monospace;">SYSTEM BOOT IN PROGRESS...</div>
+        <div id="boot-log" style="font-size: 10px; opacity: 0.5; margin-top: 20px;"></div>
+    </div>
 
-<div class="app" id="app">
-<div class="sidebar">
-  <div class="logo">Mopsogram</div>
+    <div id="loader">
+        <div style="font-size: 50px; text-shadow: 5px 5px #000;">ГИПЕР-ЗАГРУЗКА 9000</div>
+        <div id="log-container" style="height: 150px; overflow: hidden; width: 80%; margin-top: 20px; color: #0f0; background: #222; padding: 10px;"></div>
+        <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+        <div id="percent" style="font-size: 60px;">0%</div>
+    </div>
 
-  <div class="profile">
-    <div class="username" id="mainUsername"></div>
-    <div class="subuser" id="subUsernames"></div>
-    <div class="balance">⭐ <span id="stars">0</span></div>
-  </div>
+    <div id="bsod">
+        <div style="font-size: 100px;">:(</div>
+        <h1>ВАШ МОПС СЛИШКОМ МОЩНЫЙ</h1>
+        <p>Система не выдержала уровня милоты и неадекватности.</p>
+        <p>Код ошибки: MOPS_OVERLOAD_MAX_LEVEL</p>
+        <marquee direction="right">🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴🐶🦴</marquee>
+    </div>
 
-  <!-- NFT USERNAME MARKET -->
-  <div class="section">
-    <b style="color:orange;">NFT USERNAMES</b>
-    <div id="market"></div>
-  </div>
+    <div id="ui-layer">
+        <div class="score-ui" id="score">УРОВЕНЬ ШИЗЫ: 0</div>
+    </div>
 
-  <!-- PROMO / CHECKS -->
-  <div class="section">
-    <b style="color:orange;">ПРОМО КОД</b>
-    <input id="promo" placeholder="ввести код">
-    <button class="btn" onclick="redeemCode()">Активировать</button>
-  </div>
+    <script>
+        let scene, camera, renderer, plane, clowns = [], junk = [];
+        let isClownMode = false;
+        let score = 0;
+        let clock = new THREE.Clock();
+        let audioCtx, osc, gain;
 
-  <!-- ADMIN SPAWN CHECKS -->
-  <div class="admin-section">
-    <b style="color:red;">Админ: Спавн чеков</b>
-    <input id="adminCode" placeholder="ввести админ код">
-    <button class="btn" onclick="spawnStars()">Добавить звезды</button>
-  </div>
+        const bootLogs = [
+            "Кормим мопса...", "Чешем за ушком...", "Проверяем запасы косточек...", 
+            "Удаляем папку 'Коты'...", "Заряжаем гавкалку...", "Анализируем хвост..."
+        ];
 
-</div>
+        const crazyPhrases = [
+            "ГДЕ ТАПКИ?", "КУПИ КОРМ!", "ГАВ!", "Я ТУТ ГЛАВНЫЙ", "КЛОУНЫ ПОВСЮДУ", 
+            "100% НАТУРАЛЬНО", "МММ КАША", "ВЫХОДА НЕТ", "АПРЕЛЬСКИЙ РОФЛ"
+        ];
 
-<div class="main">
-<div class="topbar">
-  <div>Чат</div>
-  <button onclick="logout()">Выйти</button>
-</div>
+        async function startBoot() {
+            const bootLog = document.getElementById('boot-log');
+            for(let i=0; i<bootLogs.length; i++) {
+                await new Promise(r => setTimeout(r, 400));
+                bootLog.innerText += "\n> " + bootLogs[i];
+            }
+            setTimeout(() => {
+                document.getElementById('boot-screen').style.display = 'none';
+                document.getElementById('loader').style.display = 'flex';
+                runMainLoader();
+            }, 500);
+        }
 
-<div class="messages" id="messages"></div>
+        async function runMainLoader() {
+            const fill = document.getElementById('fill');
+            const percent = document.getElementById('percent');
+            const logBox = document.getElementById('log-container');
 
-<div class="input">
-  <input id="msg" placeholder="Сообщение">
-  <button onclick="sendMessage()">➤</button>
-</div>
-</div>
-</div>
+            for (let i = 0; i <= 100; i++) {
+                let delay = i === 99 ? 3000 : (i > 80 ? 100 : 20);
+                await new Promise(r => setTimeout(r, delay));
+                fill.style.width = i + '%';
+                percent.innerText = i + '%';
+                
+                if (i % 3 === 0) {
+                    const l = document.createElement('div');
+                    l.innerText = `[INFO] Синхронизация с астралом: ${Math.random()}`;
+                    logBox.prepend(l);
+                }
 
-<script>
-if (!window.sbClient) {
-  window.sbClient = window.supabase.createClient(
-    "https://obqwgeusngfpboklrwob.supabase.co",
-    "sb_publishable_y5BsczI_vrBaouWNyS-kFg_vQ1FEUhE"
-  );
-}
+                if (i === 100) {
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('bsod').style.display = 'block';
+                    setTimeout(activateMadness, 2000);
+                }
+            }
+        }
 
-var supabase = window.sbClient;
-let currentUser=null, profile=null;
+        function activateMadness() {
+            document.getElementById('bsod').style.display = 'none';
+            document.body.classList.add('insane-mode');
+            document.getElementById('score').style.display = 'block';
+            isClownMode = true;
+            initAudio();
+            init3D();
+        }
 
-async function sendCode(){
-  const { error } = await supabase.auth.signInWithOtp({ email: val('email') });
-  if(error) return alert(error.message);
-  alert('код отправлен');
-}
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            osc = audioCtx.createOscillator();
+            gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            gain.gain.value = 0.02;
+            osc.start();
 
-async function verifyCode(){
-  const { data, error } = await supabase.auth.verifyOtp({
-    email: val('email'), token: val('code'), type:'email'
-  });
-  if(error) return alert(error.message);
+            setInterval(() => {
+                if(!isClownMode) return;
+                osc.frequency.setTargetAtTime(100 + Math.random() * 1000, audioCtx.currentTime, 0.05);
+                if(Math.random() > 0.8) spawnCrazyText();
+            }, 100);
+        }
 
-  currentUser = data.user;
+        function init3D() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-  await supabase.from('profiles').upsert({
-    id: currentUser.id,
-    username: val('username'),
-    extra_usernames: [],
-    stars: 0
-  });
+            // Самолет (теперь это просто светящийся куб хаоса)
+            plane = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: true }));
+            scene.add(plane);
 
-  startApp();
-}
+            scene.add(new THREE.AmbientLight(0xffffff, 1));
+            camera.position.z = 10;
+            animate();
+        }
 
-async function loadProfile(){
-  const { data } = await supabase.from('profiles').select('*').eq('id',currentUser.id).single();
-  profile=data;
+        function spawnCrazyText() {
+            const t = document.createElement('div');
+            t.className = 'crazy-text';
+            t.innerText = crazyPhrases[Math.floor(Math.random() * crazyPhrases.length)];
+            t.style.left = Math.random() * 90 + 'vw';
+            t.style.top = Math.random() * 90 + 'vh';
+            t.style.fontSize = (Math.random() * 50 + 20) + 'px';
+            t.style.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 1000);
+        }
 
-  mainUsername.innerText='@'+profile.username;
-  subUsernames.innerText=(profile.extra_usernames||[]).map(u=>'@'+u).join(' ');
-  stars.innerText=profile.stars||0;
-}
+        function spawnObject() {
+            const geo = Math.random() > 0.5 ? new THREE.SphereGeometry(1, 4, 4) : new THREE.TorusGeometry(1, 0.5, 8, 8);
+            const mat = new THREE.MeshBasicMaterial({ color: Math.random() * 0xffffff, wireframe: Math.random() > 0.5 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(Math.random()*40-20, Math.random()*20-10, -100);
+            scene.add(mesh);
+            clowns.push(mesh);
+        }
 
-async function loadMarket(){
-  const { data } = await supabase.from('usernames_market').select('*');
-  market.innerHTML='';
+        let mx = 0, my = 0;
+        window.addEventListener('mousemove', (e) => {
+            mx = (e.clientX / window.innerWidth) * 2 - 1;
+            my = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
 
-  data.forEach(item=>{
-    const div=document.createElement('div');
-    div.className='market-item';
-    div.innerHTML=`@${item.username} <button class='btn'>${item.price}⭐</button>`;
+        function animate() {
+            requestAnimationFrame(animate);
+            let d = clock.getDelta();
 
-    div.querySelector('button').onclick=()=>buyUsername(item);
-    market.appendChild(div);
-  });
-}
+            if (isClownMode) {
+                // Тряска камеры
+                camera.position.x = Math.sin(Date.now() * 0.1) * 2;
+                camera.position.y = Math.cos(Date.now() * 0.1) * 2;
+                camera.rotation.z += 0.05;
 
-async function buyUsername(item){
-  if(profile.stars < item.price) return alert('не хватает звезд');
+                plane.position.x += (mx * 25 - plane.position.x) * 0.1;
+                plane.position.y += (my * 15 - plane.position.y) * 0.1;
+                plane.rotation.x += 0.2;
+                plane.rotation.y += 0.2;
 
-  const newExtras=[...(profile.extra_usernames||[]), item.username];
+                // Случайные объекты
+                if(Math.random() < 0.2) spawnObject();
 
-  await supabase.from('profiles').update({
-    extra_usernames:newExtras,
-    stars: profile.stars - item.price
-  }).eq('id', currentUser.id);
+                clowns.forEach((c, i) => {
+                    c.position.z += 50 * d * 5;
+                    c.rotation.x += 0.1;
+                    if (c.position.distanceTo(plane.position) < 3) {
+                        score += 777;
+                        document.getElementById('score').innerText = "ШИЗА: " + score;
+                        scene.remove(c);
+                        clowns.splice(i, 1);
+                    }
+                    if(c.position.z > 20) {
+                        scene.remove(c);
+                        clowns.splice(i, 1);
+                    }
+                });
 
-  alert('куплено 🔥');
-  loadProfile();
-}
+                // Фон
+                renderer.setClearColor(`hsl(${Date.now() % 360}, 100%, 50%)`);
+            }
+            renderer.render(scene, camera);
+        }
 
-async function redeemCode(){
-  const code = val('promo');
-
-  const { data } = await supabase.from('promo_codes').select('*').eq('code',code).single();
-
-  if(!data) return alert('код не найден');
-
-  await supabase.from('profiles').update({
-    stars: profile.stars + data.stars
-  }).eq('id', currentUser.id);
-
-  alert('получено '+data.stars+'⭐');
-  loadProfile();
-}
-
-async function spawnStars(){
-  const code = val('adminCode');
-  // админский код, который можно ввести для начисления звезд
-  const ADMIN_SECRET = 'SUPERADMIN123';
-  if(code !== ADMIN_SECRET) return alert('неверный админ код');
-
-  await supabase.from('profiles').update({
-    stars: profile.stars + 100
-  }).eq('id', currentUser.id);
-
-  alert('Вы получили 100⭐ как админ!');
-  loadProfile();
-}
-
-async function startApp(){
-  auth.style.display='none';
-  app.style.display='block';
-  await loadProfile();
-  await loadMarket();
-  loadMessages();
-}
-
-async function sendMessage(){
-  if(!msg.value) return;
-  await supabase.from('messages').insert([{ text:msg.value, user:profile.username }]);
-  msg.value='';
-}
-
-async function loadMessages(){
-  const { data } = await supabase.from('messages').select('*');
-  messages.innerHTML='';
-  data.forEach(m=>{
-    const div=document.createElement('div');
-    div.className='msg '+(m.user===profile.username?'me':'other');
-    div.innerHTML=`<b>@${m.user}</b><br>${m.text}`;
-    messages.appendChild(div);
-  });
-  messages.scrollTop=messages.scrollHeight;
-}
-
-function logout(){ supabase.auth.signOut(); location.reload(); }
-function val(id){return document.getElementById(id).value;}
-
-supabase.channel('realtime')
-.on('postgres_changes',{event:'*',schema:'public',table:'messages'},()=>loadMessages())
-.subscribe();
-
-</script>
-
+        window.onload = startBoot;
+        window.addEventListener('resize', () => {
+            if(camera) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
 </body>
 </html>
