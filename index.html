@@ -321,12 +321,41 @@
             render({ uid: user.id, name: user.username, ava: user.avatar, val }, targetId);
         }
 
+        // Вспомогательная функция для запросов с повторными попытками
+        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (response.ok) return response;
+                
+                // Если ошибка 404 для модели, это критично, но если 429 или 500+ - можно ретраить
+                if (response.status === 404) {
+                   throw new Error("Модель не найдена (404). Проверь URL или название модели.");
+                }
+                
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                return response;
+            } catch (err) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw err;
+            }
+        }
+
         async function aiRespond(prompt) {
             const typing = document.getElementById('ai-typing');
             typing.style.display = 'block'; scroll();
             
+            // Используем gemini-2.0-flash как более стабильную версию для превью
+            const modelName = "gemini-2.5-flash-preview-09-2025"; 
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const response = await fetchWithRetry(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -335,12 +364,12 @@
                     })
                 });
 
+                const result = await response.json();
+                
                 if (!response.ok) {
-                    const errorJson = await response.json();
-                    throw new Error(`API Error ${response.status}: ${errorJson.error?.message || 'Unknown'}`);
+                    throw new Error(result.error?.message || `Ошибка сервера (${response.status})`);
                 }
 
-                const result = await response.json();
                 const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Тяф! Мои нейроны запутались в поводке. Повтори еще раз!";
 
                 typing.style.display = 'none';
@@ -351,13 +380,13 @@
                     val: aiText 
                 }, 'ai-msgs');
             } catch (e) {
-                console.error(e);
+                console.error("AI Error:", e);
                 typing.style.display = 'none';
                 render({ 
                     uid: 'CORE', 
                     name: '🐶 Коре (ОШИБКА)', 
                     ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Error', 
-                    val: `🦴 Тяф! Ошибка связи: ${e.message}. Проверь ключ!` 
+                    val: `🦴 Тяф! Ошибка: ${e.message}. Возможно, выбранная модель недоступна. Попробуй позже.` 
                 }, 'ai-msgs');
             }
         }
@@ -372,16 +401,19 @@
             btn.disabled = true; loader.style.display = 'block'; resBox.style.display = 'none'; errDisplay.style.display = 'none';
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                const response = await fetchWithRetry(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ instances: [{ prompt: p }], parameters: { sampleCount: 1 } })
                 });
-                if (!response.ok) {
-                   const errData = await response.json();
-                   throw new Error(errData.error?.message || "Сервис временно недоступен (Ошибка " + response.status + ")");
-                }
+                
                 const result = await response.json();
+                
+                if (!response.ok) {
+                   throw new Error(result.error?.message || "Ошибка генерации (" + response.status + ")");
+                }
+                
                 if (result.predictions?.[0]?.bytesBase64Encoded) {
                     currentGenImg = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
                     document.getElementById('art-img').src = currentGenImg;
