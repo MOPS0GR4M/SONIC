@@ -3,368 +3,382 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>MOPSOGRAM ULTIMATE</title>
+    <title>MOPSOGRAM ULTIMATE V18</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Базовые переменные и темы */
         :root {
             --bg: #000000;
             --card: #1c1c1e;
+            --card-hover: #2c2c2e;
             --accent: #ff9500;
             --accent-gradient: linear-gradient(135deg, #ff9500, #ff5e00);
             --text: #ffffff;
             --text-secondary: #8e8e93;
             --border: rgba(255, 255, 255, 0.1);
-            --glass: rgba(18, 18, 18, 0.7);
-            --radius: 24px;
-            --blur: 30px;
+            --glass: rgba(18, 18, 18, 0.85);
+            --radius-md: 18px;
+            --blur: 40px;
+            --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        /* Тема Cyberpunk */
+        /* Темы оформления */
         [data-theme="cyber"] {
-            --bg: #050505;
-            --card: #0a0a0f;
-            --accent: #00f2ff;
-            --accent-gradient: linear-gradient(135deg, #00f2ff, #7000ff);
-            --text: #ffffff;
-            --border: rgba(0, 242, 255, 0.2);
-            --glass: rgba(5, 5, 10, 0.8);
+            --bg: #050505; --card: #0d0d15; --card-hover: #161625;
+            --accent: #00f2ff; --accent-gradient: linear-gradient(135deg, #00f2ff, #7000ff);
+            --border: rgba(0, 242, 255, 0.15);
         }
-
-        /* Тема Ruby */
         [data-theme="ruby"] {
-            --bg: #0a0000;
-            --card: #1a0505;
-            --accent: #ff2d55;
-            --accent-gradient: linear-gradient(135deg, #ff2d55, #8b0000);
-            --text: #ffffff;
-            --border: rgba(255, 45, 85, 0.2);
-            --glass: rgba(20, 0, 0, 0.8);
+            --bg: #0d0000; --card: #1f0808; --card-hover: #2d0c0c;
+            --accent: #ff2d55; --accent-gradient: linear-gradient(135deg, #ff2d55, #8b0000);
+            --border: rgba(255, 45, 85, 0.15);
         }
-
-        /* Тема Neon */
-        [data-theme="neon"] {
-            --bg: #000a00;
-            --card: #051405;
-            --accent: #32d74b;
-            --accent-gradient: linear-gradient(135deg, #32d74b, #00ff00);
-            --text: #ffffff;
-            --border: rgba(50, 215, 75, 0.2);
-            --glass: rgba(0, 15, 0, 0.8);
+        [data-theme="emerald"] {
+            --bg: #020d08; --card: #0a1f14; --card-hover: #123120;
+            --accent: #00ff88; --accent-gradient: linear-gradient(135deg, #00ff88, #008855);
+            --border: rgba(0, 255, 136, 0.15);
+        }
+        [data-theme="midnight"] {
+            --bg: #010409; --card: #0d1117; --card-hover: #161b22;
+            --accent: #58a6ff; --accent-gradient: linear-gradient(135deg, #58a6ff, #1f6feb);
+            --border: rgba(88, 166, 255, 0.15);
+        }
+        [data-theme="gold"] {
+            --bg: #0a0901; --card: #1c1a0a; --card-hover: #2d2a12;
+            --accent: #ffcc00; --accent-gradient: linear-gradient(135deg, #ffcc00, #aa8800);
+            --border: rgba(255, 204, 0, 0.15);
         }
 
         * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+            box-sizing: border-box; margin: 0; padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
             -webkit-tap-highlight-color: transparent;
-            transition: background 0.3s ease, border-color 0.3s ease;
         }
-        
-        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; justify-content: center; transition: background 0.3s; }
 
         .app-container {
-            width: 100%; max-width: 500px; background: var(--bg);
-            height: 100%; display: flex; flex-direction: column; position: relative;
+            width: 100%; max-width: 500px; height: 100%;
+            background: var(--bg); position: relative;
+            display: flex; flex-direction: column;
+            border-left: 0.5px solid var(--border); border-right: 0.5px solid var(--border);
         }
 
-        /* --- AUTH --- */
-        #auth { 
-            position: absolute; inset: 0; background: #000; 
-            z-index: 2000; display: flex; align-items: center; justify-content: center; 
+        #auth-screen {
+            position: absolute; inset: 0; background: #000; z-index: 5000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px; transition: 0.5s ease;
         }
-        .auth-box { width: 100%; padding: 40px; max-width: 400px; display: flex; flex-direction: column; align-items: center; }
-        .auth-title { font-size: 32px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 5px; color: var(--accent); text-transform: uppercase; }
-        .auth-subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 30px; text-align: center; }
+        .auth-logo { font-size: 38px; font-weight: 900; color: var(--accent); margin-bottom: 30px; letter-spacing: -1.5px; }
 
-        .input-field { 
-            width: 100%; padding: 18px; border-radius: 18px; border: 1px solid var(--border); 
-            background: rgba(255,255,255,0.05); color: #fff; font-size: 16px; outline: none; margin-bottom: 12px;
+        .m-input {
+            width: 100%; background: var(--card); border: 1px solid var(--border);
+            padding: 18px 20px; border-radius: var(--radius-md);
+            color: #fff; font-size: 16px; outline: none; margin-bottom: 15px;
         }
 
-        .btn-auth { 
-            width: 100%; padding: 18px; border-radius: 18px; border: none; 
-            background: var(--accent-gradient); color: #fff; font-weight: 800; font-size: 16px;
+        .m-btn {
+            width: 100%; background: var(--accent-gradient); color: #fff; border: none;
+            padding: 16px; border-radius: var(--radius-md); font-weight: 800;
+            font-size: 14px; cursor: pointer; transition: 0.2s; text-transform: uppercase;
+        }
+        .m-btn:active { transform: scale(0.98); }
+
+        header {
+            height: calc(65px + var(--safe-top)); padding-top: var(--safe-top);
+            display: flex; align-items: center; gap: 15px; padding-left: 20px; padding-right: 20px;
+            background: var(--glass); backdrop-filter: blur(var(--blur));
+            border-bottom: 0.5px solid var(--border); z-index: 1000;
+        }
+        .header-title { font-weight: 900; font-size: 18px; flex: 1; text-transform: uppercase; letter-spacing: 0.5px; }
+        .back-btn { cursor: pointer; color: var(--accent); display: none; padding: 5px; }
+
+        .chats-list { flex: 1; overflow-y: auto; }
+        .chat-item {
+            display: flex; align-items: center; padding: 14px 20px;
             cursor: pointer; transition: 0.2s;
         }
-        .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+        .chat-item:active { background: var(--card-hover); }
+        .chat-ava { width: 52px; height: 52px; border-radius: 50%; margin-right: 15px; object-fit: cover; background: #222; border: 1px solid var(--border); }
+        .chat-info { flex: 1; border-bottom: 0.5px solid rgba(255,255,255,0.05); padding-bottom: 14px; }
+        .chat-name { font-weight: 700; font-size: 16px; }
 
-        /* --- UI --- */
-        header { 
-            height: 60px; display: flex; align-items: center; justify-content: space-between; 
-            padding: 0 20px; border-bottom: 0.5px solid var(--border); 
+        #messenger-view {
+            position: absolute; inset: 0; background: var(--bg);
+            z-index: 2000; display: none; flex-direction: column;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+        .messages-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+        
+        .bubble-wrap { display: flex; flex-direction: column; max-width: 85%; }
+        .bubble-wrap.own { align-self: flex-end; }
+        .bubble { padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; background: var(--card); border: 0.5px solid var(--border); word-break: break-word; }
+        .own .bubble { background: var(--accent-gradient); border: none; color: #fff; border-bottom-right-radius: 4px; }
+        .not-own .bubble { border-bottom-left-radius: 4px; }
+
+        .input-bar {
             background: var(--glass); backdrop-filter: blur(var(--blur));
-            z-index: 100;
+            padding: 12px 15px calc(15px + var(--safe-bottom));
+            display: flex; align-items: center; gap: 10px; border-top: 0.5px solid var(--border);
         }
-        
-        main { flex: 1; overflow-y: auto; scrollbar-width: none; position: relative; }
-        main::-webkit-scrollbar { display: none; }
-
-        .view { display: none; padding: 15px; width: 100%; min-height: 100%; }
-        .view.active { display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
-
-        /* --- MESSAGES --- */
-        #msgs, #ai-msgs { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .msg-wrapper { display: flex; gap: 10px; max-width: 85%; align-self: flex-start; margin-bottom: 5px; }
-        .msg-wrapper.own { align-self: flex-end; flex-direction: row-reverse; }
-        .msg-ava { width: 32px; height: 32px; border-radius: 50%; align-self: flex-end; background: #222; flex-shrink: 0; object-fit: cover; border: 1px solid var(--border); }
-        .bubble { padding: 10px 14px; border-radius: var(--radius); background: var(--card); font-size: 15px; line-height: 1.4; border: 0.5px solid var(--border); }
-        .own .bubble { background: var(--accent-gradient); border-bottom-right-radius: 4px; border: none; }
-        .msg-wrapper:not(.own) .bubble { border-bottom-left-radius: 4px; }
-        .bubble img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
-        .msg-name { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
-
-        .typing { font-size: 12px; color: var(--accent); margin-left: 45px; display: none; margin-bottom: 10px; font-weight: bold; }
-
-        /* --- ART VIEW --- */
-        .art-card { background: var(--card); border-radius: var(--radius); padding: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
-        .loading-overlay { display: none; text-align: center; padding: 20px; }
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* --- THEME SELECTOR --- */
-        .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
-        .theme-btn { 
-            padding: 15px; border-radius: 15px; border: 1px solid var(--border); 
-            background: rgba(255,255,255,0.05); color: #fff; font-size: 12px; font-weight: 700;
-            cursor: pointer; text-align: center; transition: 0.2s;
+        .input-bar input {
+            flex: 1; background: rgba(255,255,255,0.08); border: none;
+            padding: 14px 20px; border-radius: 25px; color: #fff; font-size: 15px; outline: none;
         }
-        .theme-btn.active { border-color: var(--accent); background: rgba(255, 149, 0, 0.1); color: var(--accent); }
+        .send-btn { color: var(--accent); cursor: pointer; padding: 8px; }
 
-        /* --- BOTTOM BAR --- */
-        .ibar { background: var(--glass); backdrop-filter: blur(var(--blur)); padding: 10px 15px calc(10px + var(--safe-bottom)); display: flex; gap: 10px; border-top: 0.5px solid var(--border); }
-        .ibar input { flex: 1; padding: 12px 18px; border-radius: 20px; background: rgba(255,255,255,0.08); border: none; color: #fff; font-size: 15px; outline: none; }
-        .icon-btn { color: var(--accent); background: none; border: none; cursor: pointer; display: flex; align-items: center; }
-
-        nav { height: 60px; display: flex; background: var(--glass); border-top: 0.5px solid var(--border); padding-bottom: var(--safe-bottom); }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 10px; gap: 3px; cursor: pointer; }
+        nav {
+            height: calc(65px + var(--safe-bottom)); display: flex;
+            background: var(--glass); border-top: 0.5px solid var(--border);
+            padding-bottom: var(--safe-bottom);
+        }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 11px; gap: 4px; cursor: pointer; }
         .nav-item.active { color: var(--accent); }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .themes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .theme-card { height: 50px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; }
+
+        .status-msg { text-align: center; color: var(--text-secondary); font-size: 12px; margin: 20px 0; font-style: italic; opacity: 0.6; }
+
+        .hidden { display: none !important; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
     </style>
 </head>
 <body data-theme="classic">
 
     <div class="app-container">
-        <!-- Auth -->
-        <div id="auth">
-            <div class="auth-box">
-                <div class="auth-title">MOPSOGRAM</div>
-                <div class="auth-subtitle">Версия Ultimate V16</div>
-                <input id="u-nick" class="input-field" placeholder="@username">
-                <input id="u-pass" type="password" class="input-field" placeholder="Пароль">
-                <button class="btn-auth" id="login-btn">Войти в сеть</button>
-            </div>
+        
+        <div id="auth-screen">
+            <div class="auth-logo">MOPSOGRAM</div>
+            <input id="u-nick" class="m-input" placeholder="@username" autocomplete="off">
+            <input id="u-pass" type="password" class="m-input" placeholder="пароль">
+            <button id="u-login" class="m-btn">ВОЙТИ В СЕТЬ</button>
         </div>
 
         <header>
-            <span id="view-title" style="font-weight: 900; font-size: 18px; color: var(--accent);">ОБЩИЙ ЧАТ</span>
-            <div id="u-head" style="font-size:10px; font-weight:800; opacity: 0.6;"></div>
+            <div id="m-back" class="back-btn" onclick="closeChat()"><i data-lucide="chevron-left"></i></div>
+            <div class="header-title" id="h-title">Чаты</div>
+            <div id="h-user" style="font-size: 11px; opacity: 0.5;"></div>
         </header>
 
-        <main id="scroller">
-            <!-- Views -->
-            <div id="v-chat" class="view active"><div id="msgs"></div></div>
-
-            <div id="v-ai" class="view">
-                <div id="ai-msgs">
-                    <div class="msg-wrapper">
-                        <img class="msg-ava" src="https://api.dicebear.com/7.x/bottts/svg?seed=CoreMops">
-                        <div style="flex:1">
-                            <div class="msg-name">🐶 Коре</div>
-                            <div class="bubble">Тяф! Я готов к твоим вопросам. Жги!</div>
-                        </div>
+        <main id="main-content" style="flex: 1; overflow: hidden; position: relative;">
+            
+            <!-- Список чатов -->
+            <div id="view-list" class="chats-list">
+                <div class="chat-item" onclick="openChat('global')">
+                    <div style="width:52px; height:52px; border-radius:50%; background:var(--accent-gradient); display:flex; align-items:center; justify-content:center; margin-right:15px;">
+                        <i data-lucide="globe" color="#fff"></i>
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">Общий чат</div>
+                        <div class="chat-preview" style="color:var(--text-secondary); font-size:13px;">Все пользователи MOPSOGRAM</div>
                     </div>
                 </div>
-                <div id="ai-typing" class="typing">Коре обдумывает ответ... 🦴</div>
+                <div id="contacts"></div>
             </div>
 
-            <div id="v-art" class="view">
-                <h2 style="margin-bottom:15px; font-weight:900;">ИИ Студия</h2>
-                <div class="art-card">
-                    <textarea id="art-prompt" class="input-field" style="height:80px; resize:none;" placeholder="Опиши картинку..."></textarea>
-                    <button class="btn-auth" id="gen-btn">Создать</button>
-                    <div id="art-loading" class="loading-overlay"><div class="spinner"></div><p style="font-size:12px;">Нейросеть рисует...</p></div>
-                    <div id="art-result-box" style="display:none; margin-top:15px;">
-                        <img id="art-img" style="width:100%; border-radius:15px; border:1px solid var(--border);">
-                        <button class="btn-auth" id="share-art-btn" style="margin-top:10px; background:#34c759;">Запостить в чат</button>
-                    </div>
+            <!-- Профиль -->
+            <div id="view-profile" class="hidden" style="padding: 25px; overflow-y: auto; height: 100%;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <img id="p-ava" style="width:110px; height:110px; border-radius:50%; border:3px solid var(--accent); margin-bottom:15px; background: #222;">
+                    <h2 id="p-name" style="letter-spacing: -0.5px;"></h2>
+                    <p style="color: var(--text-secondary); font-size: 13px;">Статус: В сети</p>
+                </div>
+
+                <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 800; margin-bottom: 12px; letter-spacing: 1px;">Выбор темы</div>
+                <div class="themes-grid">
+                    <div class="theme-card" style="background: #1c1c1e; color: #ff9500;" onclick="setTheme('classic')">CLASSIC</div>
+                    <div class="theme-card" style="background: #0d0d15; color: #00f2ff;" onclick="setTheme('cyber')">CYBER</div>
+                    <div class="theme-card" style="background: #1f0808; color: #ff2d55;" onclick="setTheme('ruby')">RUBY</div>
+                    <div class="theme-card" style="background: #0a1f14; color: #00ff88;" onclick="setTheme('emerald')">EMERALD</div>
+                    <div class="theme-card" style="background: #0d1117; color: #58a6ff;" onclick="setTheme('midnight')">MIDNIGHT</div>
+                    <div class="theme-card" style="background: #1c1a0a; color: #ffcc00;" onclick="setTheme('gold')">GOLD</div>
+                </div>
+
+                <button class="m-btn" style="background:#ff3b30; margin-top:40px;" onclick="location.reload()">ВЫЙТИ ИЗ АККАУНТА</button>
+            </div>
+
+            <!-- Окно мессенджера -->
+            <div id="messenger-view">
+                <div id="msgs" class="messages-area"></div>
+                <div class="input-bar">
+                    <input id="m-in" placeholder="Сообщение..." autocomplete="off">
+                    <div id="m-send" class="send-btn"><i data-lucide="send"></i></div>
                 </div>
             </div>
 
-            <div id="v-lab" class="view">
-                <div class="art-card" style="text-align:center;">
-                    <img id="prof-ava" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px; border:2px solid var(--accent);">
-                    <h3 id="prof-nick" style="font-weight:900;"></h3>
-                </div>
-
-                <div class="art-card">
-                    <h4 style="font-size:14px; margin-bottom:15px; opacity:0.7;">ТЕМА ОФОРМЛЕНИЯ</h4>
-                    <div class="theme-grid">
-                        <div class="theme-btn active" onclick="setTheme('classic')">ОРИДЖИНАЛ</div>
-                        <div class="theme-btn" onclick="setTheme('cyber')">КИБЕРПАНК</div>
-                        <div class="theme-btn" onclick="setTheme('ruby')">РУБИН</div>
-                        <div class="theme-btn" onclick="setTheme('neon')">НЕОН</div>
-                    </div>
-                </div>
-                <button class="btn-auth" style="margin-top:10px; background:rgba(255,0,0,0.1); color:red;" onclick="location.reload()">Выход</button>
-            </div>
         </main>
 
-        <div class="ibar" id="input-bar">
-            <input id="chat-in" placeholder="Напиши что-нибудь..." autocomplete="off">
-            <button id="chat-send" class="icon-btn"><i data-lucide="send"></i></button>
-        </div>
-
-        <nav>
-            <div class="nav-item active" onclick="tab('chat')"><i data-lucide="message-square"></i><span>Чат</span></div>
-            <div class="nav-item" onclick="tab('ai')"><i data-lucide="dog"></i><span>Коре</span></div>
-            <div class="nav-item" onclick="tab('art')"><i data-lucide="sparkles"></i><span>Арт</span></div>
-            <div class="nav-item" onclick="tab('lab')"><i data-lucide="user"></i><span>Профиль</span></div>
+        <nav id="nav-bar">
+            <div class="nav-item active" onclick="tab('list')"><i data-lucide="message-circle"></i><span>Чаты</span></div>
+            <div class="nav-item" onclick="tab('profile')"><i data-lucide="user"></i><span>Профиль</span></div>
         </nav>
+
     </div>
 
     <script>
-        const apiKey = ""; // Автоматически предоставляется средой
         const SB_URL = "https://obqwgeusngfpboklrwob.supabase.co";
         const SB_KEY = "sb_publishable_y5BsczI_vrBaouWNyS-kFg_vQ1FEUhE";
         const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
         let user = null;
-        let currentTab = 'chat';
-        let currentGenImg = "";
+        let activeChat = null;
+        let contacts = [];
+        let channel = null;
+        let hasToUid = true;
 
-        // Темы
-        function setTheme(t) {
-            document.body.setAttribute('data-theme', t);
-            document.querySelectorAll('.theme-btn').forEach(b => {
-                b.classList.remove('active');
-                if(b.innerText.toLowerCase().includes(t.substring(0,3))) b.classList.add('active');
-            });
-        }
+        lucide.createIcons();
 
-        // Ретрай-логика для API
-        async function fetchWithRetry(url, options, retries = 5) {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const response = await fetch(url, options);
-                    if (response.ok) return response;
-                } catch (err) {
-                    if (i === retries - 1) throw err;
-                    const delay = Math.pow(2, i) * 1000;
-                    await new Promise(res => setTimeout(res, delay));
-                }
-            }
-        }
-
-        document.getElementById('login-btn').onclick = async () => {
+        document.getElementById('u-login').onclick = async () => {
             const n = document.getElementById('u-nick').value.trim();
+            const p = document.getElementById('u-pass').value;
             if(!n) return;
-            user = { id: Math.random().toString(36).substr(2,9), username: n, avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
-            document.getElementById('auth').style.display = 'none';
-            document.getElementById('u-head').innerText = n;
-            document.getElementById('prof-nick').innerText = n;
-            document.getElementById('prof-ava').src = user.avatar;
-            lucide.createIcons();
-            initChat();
+
+            try {
+                const { data } = await sb.from('users').select('*').eq('username', n).single();
+                if(data) {
+                    if(data.password !== p) return alert("Неверный пароль");
+                    user = data;
+                } else {
+                    user = { 
+                        id: 'u_'+Math.random().toString(36).substr(2,9), 
+                        username: n, password: p, 
+                        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` 
+                    };
+                    await sb.from('users').insert([user]);
+                }
+
+                document.getElementById('auth-screen').style.opacity = '0';
+                setTimeout(() => document.getElementById('auth-screen').style.display = 'none', 500);
+                
+                document.getElementById('h-user').innerText = `@${user.username}`;
+                document.getElementById('p-name').innerText = user.username;
+                document.getElementById('p-ava').src = user.avatar;
+                
+                init();
+            } catch (err) {
+                alert("Ошибка входа");
+            }
         };
 
-        async function initChat() {
-            const { data } = await sb.from('messages').select('*').order('id', {ascending:true}).limit(50);
-            if(data) data.forEach(render);
-            scroll();
-            sb.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => render(p.new)).subscribe();
-        }
+        async function init() {
+            // Проверка структуры БД
+            const { error } = await sb.from('messages').select('to_uid').limit(1);
+            if (error) hasToUid = false;
 
-        function render(d, target = 'msgs') {
-            const isOwn = d.uid === user.id;
-            const container = document.getElementById(target);
-            const wrap = document.createElement('div');
-            wrap.className = `msg-wrapper ${isOwn ? 'own' : ''}`;
-            let val = d.val;
-            if(val.startsWith('data:image')) val = `<img src="${val}">`;
-            wrap.innerHTML = `<img class="msg-ava" src="${d.ava}"><div style="flex:1"><div class="msg-name">${d.name}</div><div class="bubble">${val}</div></div>`;
-            container.appendChild(wrap);
-            scroll();
-        }
-
-        async function aiRespond(prompt) {
-            const typing = document.getElementById('ai-typing');
-            typing.style.display = 'block'; scroll();
-            try {
-                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: "Ты — Коре, саркастичный пес-интеллектуал. Отвечай коротко, по-собачьи, на русском. Используй метафоры про косточки и поводки." }] }
+            loadContacts();
+            
+            if (!channel) {
+                channel = sb.channel('v18_channel')
+                    .on('postgres_changes', { event:'INSERT', schema:'public', table:'messages' }, payload => {
+                        const m = payload.new;
+                        if (activeChat === 'global' && (!m.to_uid)) render(m);
+                        else if (activeChat && (m.uid === activeChat || m.to_uid === activeChat)) {
+                            if ((m.uid === user.id && m.to_uid === activeChat) || (m.uid === activeChat && m.to_uid === user.id)) {
+                                render(m);
+                            }
+                        }
                     })
-                });
-                const result = await response.json();
-                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Тяф! Мозги запутались в поводке.";
-                render({ uid: 'AI', name: 'Коре', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Core', val: text }, 'ai-msgs');
-            } catch (e) {
-                render({ uid: 'AI', name: 'Коре', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Err', val: "Тяф! Ошибка связи." }, 'ai-msgs');
-            } finally { typing.style.display = 'none'; }
+                    .subscribe();
+            }
         }
 
-        document.getElementById('gen-btn').onclick = async () => {
-            const p = document.getElementById('art-prompt').value.trim();
-            if(!p) return;
-            const loader = document.getElementById('art-loading');
-            const resBox = document.getElementById('art-result-box');
-            loader.style.display = 'block'; resBox.style.display = 'none';
-            try {
-                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ instances: [{ prompt: p }], parameters: { sampleCount: 1 } })
+        async function loadContacts() {
+            const { data } = await sb.from('users').select('*').neq('id', user.id);
+            if(data) {
+                contacts = data;
+                const c = document.getElementById('contacts');
+                c.innerHTML = '<div style="padding:15px 20px 5px; font-size:11px; color:var(--text-secondary); text-transform:uppercase; font-weight:800; letter-spacing:1px; opacity:0.6;">Личные сообщения</div>';
+                data.forEach(u => {
+                    c.innerHTML += `
+                        <div class="chat-item" onclick="openChat('${u.id}')">
+                            <img class="chat-ava" src="${u.avatar}">
+                            <div class="chat-info">
+                                <div class="chat-name">${u.username}</div>
+                                <div class="chat-preview" style="color:var(--text-secondary); font-size:12px;">Нажмите, чтобы начать чат</div>
+                            </div>
+                        </div>
+                    `;
                 });
-                const result = await response.json();
-                currentGenImg = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
-                document.getElementById('art-img').src = currentGenImg;
-                resBox.style.display = 'block';
-            } catch (e) { alert("Ошибка генерации"); }
-            finally { loader.style.display = 'none'; }
+            }
+        }
+
+        window.openChat = async (id) => {
+            activeChat = id;
+            const container = document.getElementById('msgs');
+            document.getElementById('messenger-view').style.display = 'flex';
+            document.getElementById('m-back').style.display = 'block';
+            
+            const target = contacts.find(c => c.id === id);
+            document.getElementById('h-title').innerText = id === 'global' ? 'Общий чат' : `@${target?.username || 'Чат'}`;
+            container.innerHTML = '<div class="status-msg">Загрузка истории...</div>';
+
+            try {
+                let query = sb.from('messages').select('*');
+                if (id === 'global') {
+                    if (hasToUid) query = query.is('to_uid', null);
+                } else if (hasToUid) {
+                    query = query.or(`and(uid.eq.${user.id},to_uid.eq.${id}),and(uid.eq.${id},to_uid.eq.${user.id})`);
+                } else {
+                    container.innerHTML = '<div class="status-msg">ЛС недоступны. Обновите БД (ALTER TABLE messages ADD COLUMN to_uid TEXT).</div>';
+                    return;
+                }
+
+                const { data } = await query.order('id', {ascending:true});
+                container.innerHTML = '';
+                if(data && data.length > 0) {
+                    data.forEach(render);
+                } else {
+                    container.innerHTML = '<div class="status-msg">Здесь пока пусто...</div>';
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="status-msg">Ошибка синхронизации данных</div>';
+            }
+            scroll();
         };
 
-        document.getElementById('share-art-btn').onclick = () => {
-            if(currentGenImg) {
-                sb.from('messages').insert([{ uid: user.id, name: user.username, ava: user.avatar, val: currentGenImg }]);
-                tab('chat');
-            }
+        window.closeChat = () => {
+            activeChat = null;
+            document.getElementById('messenger-view').style.display = 'none';
+            document.getElementById('m-back').style.display = 'none';
+            document.getElementById('h-title').innerText = 'Чаты';
         };
 
-        document.getElementById('chat-send').onclick = () => {
-            const i = document.getElementById('chat-in');
-            const val = i.value.trim();
-            if(!val) return;
-            i.value = '';
-            if(currentTab === 'ai') {
-                render({ uid: user.id, name: user.username, ava: user.avatar, val }, 'ai-msgs');
-                aiRespond(val);
-            } else {
-                sb.from('messages').insert([{ uid: user.id, name: user.username, ava: user.avatar, val }]);
-            }
+        function render(m) {
+            const isOwn = m.uid === user.id;
+            const wrap = document.createElement('div');
+            wrap.className = `bubble-wrap ${isOwn ? 'own' : 'not-own'}`;
+            const nameLabel = (!isOwn && activeChat === 'global') ? `<span style="font-size:10px; color:var(--accent); margin-bottom:4px; margin-left:12px; font-weight:800;">${m.name}</span>` : '';
+            wrap.innerHTML = `${nameLabel}<div class="bubble">${m.val}</div>`;
+            document.getElementById('msgs').appendChild(wrap);
+            scroll();
+        }
+
+        document.getElementById('m-send').onclick = async () => {
+            const input = document.getElementById('m-in');
+            const val = input.value.trim();
+            if(!val || !activeChat) return;
+
+            const msg = { uid: user.id, name: user.username, val: val };
+            if (hasToUid && activeChat !== 'global') msg.to_uid = activeChat;
+
+            input.value = '';
+            const { error } = await sb.from('messages').insert([msg]);
+            if(error) alert("Ошибка сети");
         };
 
         window.tab = (t) => {
-            currentTab = t;
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById('v-'+t).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const idx = {chat:0, ai:1, art:2, lab:3}[t];
-            document.querySelectorAll('.nav-item')[idx].classList.add('active');
-            document.getElementById('view-title').innerText = {chat:'ОБЩИЙ ЧАТ', ai:'ЛС С КОРЕ', art:'ФОТОСТУДИЯ', lab:'ПРОФИЛЬ'}[t];
-            document.getElementById('input-bar').style.display = (t === 'art' || t === 'lab' ? 'none' : 'flex');
-            scroll();
+            document.getElementById('view-list').classList.toggle('hidden', t !== 'list');
+            document.getElementById('view-profile').classList.toggle('hidden', t !== 'profile');
+            document.querySelectorAll('.nav-item').forEach((n, idx) => n.classList.toggle('active', (t==='list' && idx===0) || (t==='profile' && idx===1)));
+            document.getElementById('h-title').innerText = t === 'list' ? 'Чаты' : 'Профиль';
+            if(t === 'profile') closeChat();
         };
 
-        function scroll() { const m = document.getElementById('scroller'); m.scrollTop = m.scrollHeight; }
-        document.getElementById('chat-in').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('chat-send').click(); };
+        window.setTheme = (t) => document.body.setAttribute('data-theme', t);
+        function scroll() { const d = document.getElementById('msgs'); d.scrollTop = d.scrollHeight; }
+        document.getElementById('m-in').onkeypress = (e) => { if(e.key==='Enter') document.getElementById('m-send').click(); };
     </script>
 </body>
 </html>
