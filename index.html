@@ -333,13 +333,25 @@
                         systemInstruction: { parts: [{ text: "Ты — Коре, дерзкий мопс. Общайся коротко и смешно на русском. Используй собачий сленг." }] }
                     })
                 });
+                
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(`Ошибка API (${response.status}): ${errData.error?.message || 'Неизвестная ошибка'}`);
+                }
+
                 const result = await response.json();
-                const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Тяф! Занят грызней тапка.";
+                const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (!aiText) throw new Error("API не вернул текст. Проверь настройки модели.");
+
                 setTimeout(() => {
                     typing.style.display = 'none';
                     render({ uid: 'CORE', name: '🐶 Коре', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=CoreMops', val: aiText }, 'ai-msgs');
-                }, 800);
-            } catch (e) { typing.style.display = 'none'; }
+                }, 400);
+            } catch (e) { 
+                typing.style.display = 'none';
+                render({ uid: 'CORE', name: '🐶 Коре (ОШИБКА)', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Error', val: `⚠️ Упс! ${e.message}. Проверь свой API ключ!` }, 'ai-msgs');
+            }
         }
 
         document.getElementById('gen-btn').onclick = async () => {
@@ -357,7 +369,10 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ instances: [{ prompt: p }], parameters: { sampleCount: 1 } })
                 });
-                if (!response.ok) throw new Error("Сервис временно недоступен");
+                if (!response.ok) {
+                   const errData = await response.json();
+                   throw new Error(errData.error?.message || "Сервис временно недоступен (Ошибка " + response.status + ")");
+                }
                 const result = await response.json();
                 if (result.predictions?.[0]?.bytesBase64Encoded) {
                     currentGenImg = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
