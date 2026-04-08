@@ -115,8 +115,7 @@
         .own .bubble { background: var(--accent-gradient); border-bottom-right-radius: 4px; border: none; }
         .msg-wrapper:not(.own) .bubble { border-bottom-left-radius: 4px; }
         .bubble img { max-width: 100%; border-radius: 12px; margin-top: 8px; display: block; }
-        .msg-name { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; padding-left: 42px; }
-        .own .msg-name { text-align: right; padding-right: 42px; }
+        .msg-name { font-size: 10px; color: var(--text-secondary); margin-bottom: 2px; }
 
         .typing { font-size: 12px; color: var(--accent); margin-left: 45px; display: none; margin-bottom: 10px; font-weight: bold; }
 
@@ -126,8 +125,6 @@
         .spinner { width: 30px; height: 30px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        #error-display { color: #ff3b30; font-size: 13px; text-align: center; margin-top: 15px; display: none; padding: 10px; background: rgba(255, 59, 48, 0.1); border-radius: 12px; }
-
         /* --- THEME SELECTOR --- */
         .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px; }
         .theme-btn { 
@@ -156,11 +153,10 @@
         <div id="auth">
             <div class="auth-box">
                 <div class="auth-title">MOPSOGRAM</div>
-                <div class="auth-subtitle">Введите ник и пароль для входа</div>
-                <input id="u-nick" class="input-field" placeholder="Твой ник (напр. @mops)">
+                <div class="auth-subtitle">Версия Ultimate V16</div>
+                <input id="u-nick" class="input-field" placeholder="@username">
                 <input id="u-pass" type="password" class="input-field" placeholder="Пароль">
                 <button class="btn-auth" id="login-btn">Войти в сеть</button>
-                <div id="auth-error" style="color:#ff3b30; font-size:12px; margin-top:10px; display:none;"></div>
             </div>
         </div>
 
@@ -170,6 +166,7 @@
         </header>
 
         <main id="scroller">
+            <!-- Views -->
             <div id="v-chat" class="view active"><div id="msgs"></div></div>
 
             <div id="v-ai" class="view">
@@ -178,7 +175,7 @@
                         <img class="msg-ava" src="https://api.dicebear.com/7.x/bottts/svg?seed=CoreMops">
                         <div style="flex:1">
                             <div class="msg-name">🐶 Коре</div>
-                            <div class="bubble">Тяф! Это твой секретный уголок. Тут мы можем поболтать. Чего хотел, кожаный?</div>
+                            <div class="bubble">Тяф! Я готов к твоим вопросам. Жги!</div>
                         </div>
                     </div>
                 </div>
@@ -186,12 +183,11 @@
             </div>
 
             <div id="v-art" class="view">
-                <h2 style="margin-bottom:15px; font-weight:900;">ИИ Фотостудия</h2>
+                <h2 style="margin-bottom:15px; font-weight:900;">ИИ Студия</h2>
                 <div class="art-card">
                     <textarea id="art-prompt" class="input-field" style="height:80px; resize:none;" placeholder="Опиши картинку..."></textarea>
-                    <button class="btn-auth" id="gen-btn">Создать шедевр</button>
+                    <button class="btn-auth" id="gen-btn">Создать</button>
                     <div id="art-loading" class="loading-overlay"><div class="spinner"></div><p style="font-size:12px;">Нейросеть рисует...</p></div>
-                    <div id="error-display"></div>
                     <div id="art-result-box" style="display:none; margin-top:15px;">
                         <img id="art-img" style="width:100%; border-radius:15px; border:1px solid var(--border);">
                         <button class="btn-auth" id="share-art-btn" style="margin-top:10px; background:#34c759;">Запостить в чат</button>
@@ -203,26 +199,22 @@
                 <div class="art-card" style="text-align:center;">
                     <img id="prof-ava" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:10px; border:2px solid var(--accent);">
                     <h3 id="prof-nick" style="font-weight:900;"></h3>
-                    <p style="font-size:12px; color:var(--text-secondary); margin-top:5px;">Mopsogram Premium Member</p>
                 </div>
 
                 <div class="art-card">
-                    <h4 style="font-size:14px; margin-bottom:15px; opacity:0.7;">ВЫБЕРИ СТИЛЬ СЕТИ</h4>
+                    <h4 style="font-size:14px; margin-bottom:15px; opacity:0.7;">ТЕМА ОФОРМЛЕНИЯ</h4>
                     <div class="theme-grid">
-                        <div class="theme-btn active" onclick="setTheme('classic')">КЛАССИК</div>
+                        <div class="theme-btn active" onclick="setTheme('classic')">ОРИДЖИНАЛ</div>
                         <div class="theme-btn" onclick="setTheme('cyber')">КИБЕРПАНК</div>
                         <div class="theme-btn" onclick="setTheme('ruby')">РУБИН</div>
                         <div class="theme-btn" onclick="setTheme('neon')">НЕОН</div>
                     </div>
                 </div>
-
-                <button class="btn-auth" style="margin-top:10px; background:rgba(255,0,0,0.1); color:red;" onclick="location.reload()">Выйти из аккаунта</button>
+                <button class="btn-auth" style="margin-top:10px; background:rgba(255,0,0,0.1); color:red;" onclick="location.reload()">Выход</button>
             </div>
         </main>
 
         <div class="ibar" id="input-bar">
-            <button class="icon-btn" id="plus-btn" onclick="document.getElementById('img-send').click()"><i data-lucide="plus"></i></button>
-            <input type="file" id="img-send" hidden accept="image/*" onchange="handleMsgImg(this)">
             <input id="chat-in" placeholder="Напиши что-нибудь..." autocomplete="off">
             <button id="chat-send" class="icon-btn"><i data-lucide="send"></i></button>
         </div>
@@ -230,216 +222,133 @@
         <nav>
             <div class="nav-item active" onclick="tab('chat')"><i data-lucide="message-square"></i><span>Чат</span></div>
             <div class="nav-item" onclick="tab('ai')"><i data-lucide="dog"></i><span>Коре</span></div>
-            <div class="nav-item" onclick="tab('art')"><i data-lucide="sparkles"></i><span>ИИ Фото</span></div>
-            <div class="nav-item" onclick="tab('lab')"><i data-lucide="settings"></i><span>Профиль</span></div>
+            <div class="nav-item" onclick="tab('art')"><i data-lucide="sparkles"></i><span>Арт</span></div>
+            <div class="nav-item" onclick="tab('lab')"><i data-lucide="user"></i><span>Профиль</span></div>
         </nav>
     </div>
 
     <script>
-        // АКТУАЛЬНЫЙ API КЛЮЧ
-        const apiKey = "AIzaSyC6MHqpACQwO4hhIsfumM3zF5uwZPi2qzY"; 
+        const apiKey = ""; // Автоматически предоставляется средой
         const SB_URL = "https://obqwgeusngfpboklrwob.supabase.co";
         const SB_KEY = "sb_publishable_y5BsczI_vrBaouWNyS-kFg_vQ1FEUhE";
         const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
         let user = null;
-        let lastId = 0;
-        let currentGenImg = "";
         let currentTab = 'chat';
+        let currentGenImg = "";
 
-        // Инициализация темы из памяти
-        const savedTheme = localStorage.getItem('mops-theme') || 'classic';
-        setTheme(savedTheme);
-
+        // Темы
         function setTheme(t) {
             document.body.setAttribute('data-theme', t);
-            localStorage.setItem('mops-theme', t);
             document.querySelectorAll('.theme-btn').forEach(b => {
                 b.classList.remove('active');
                 if(b.innerText.toLowerCase().includes(t.substring(0,3))) b.classList.add('active');
             });
         }
 
+        // Ретрай-логика для API
+        async function fetchWithRetry(url, options, retries = 5) {
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.ok) return response;
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                    const delay = Math.pow(2, i) * 1000;
+                    await new Promise(res => setTimeout(res, delay));
+                }
+            }
+        }
+
         document.getElementById('login-btn').onclick = async () => {
             const n = document.getElementById('u-nick').value.trim();
-            const p = document.getElementById('u-pass').value.trim();
-            const errBox = document.getElementById('auth-error');
-            if(!n || !p) return;
-            const nick = n.startsWith('@') ? n.toLowerCase() : '@' + n.toLowerCase();
-
-            try {
-                await sb.auth.signInAnonymously();
-                let { data: ex } = await sb.from('users').select('*').eq('username', nick).maybeSingle();
-                if(ex) {
-                    if(ex.password !== p) { errBox.innerText = "Неверный пароль!"; errBox.style.display = 'block'; return; }
-                    user = ex;
-                } else {
-                    user = { id: Math.random().toString(36).substr(2,9).toUpperCase(), username: nick, password: p, avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${nick}` };
-                    await sb.from('users').insert([user]);
-                }
-                start();
-            } catch (e) { errBox.innerText = "Ошибка входа."; errBox.style.display = 'block'; }
-        };
-
-        function start() {
+            if(!n) return;
+            user = { id: Math.random().toString(36).substr(2,9), username: n, avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${n}` };
             document.getElementById('auth').style.display = 'none';
-            document.getElementById('u-head').innerText = user.username;
-            document.getElementById('prof-nick').innerText = user.username;
+            document.getElementById('u-head').innerText = n;
+            document.getElementById('prof-nick').innerText = n;
             document.getElementById('prof-ava').src = user.avatar;
             lucide.createIcons();
             initChat();
-        }
+        };
 
         async function initChat() {
             const { data } = await sb.from('messages').select('*').order('id', {ascending:true}).limit(50);
-            if(data) data.forEach(d => { lastId = d.id; render(d); });
+            if(data) data.forEach(render);
             scroll();
-            sb.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => {
-                if(p.new.id > lastId) { lastId = p.new.id; render(p.new); }
-            }).subscribe();
+            sb.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, p => render(p.new)).subscribe();
         }
 
-        function render(d, targetId = 'msgs') {
+        function render(d, target = 'msgs') {
             const isOwn = d.uid === user.id;
-            const msgs = document.getElementById(targetId);
+            const container = document.getElementById(target);
             const wrap = document.createElement('div');
             wrap.className = `msg-wrapper ${isOwn ? 'own' : ''}`;
             let val = d.val;
             if(val.startsWith('data:image')) val = `<img src="${val}">`;
             wrap.innerHTML = `<img class="msg-ava" src="${d.ava}"><div style="flex:1"><div class="msg-name">${d.name}</div><div class="bubble">${val}</div></div>`;
-            msgs.appendChild(wrap);
+            container.appendChild(wrap);
             scroll();
-        }
-
-        async function send(val) {
-            if(!val) return;
-            if (currentTab === 'ai') { renderLocal(val, 'ai-msgs'); aiRespond(val); return; }
-            await sb.from('messages').insert([{ uid: user.id, name: user.username, ava: user.avatar, val }]);
-        }
-
-        function renderLocal(val, targetId) {
-            render({ uid: user.id, name: user.username, ava: user.avatar, val }, targetId);
-        }
-
-        // Вспомогательная функция для запросов с повторными попытками
-        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
-            try {
-                const response = await fetch(url, options);
-                if (response.ok) return response;
-                
-                // Если ошибка 404 для модели, это критично, но если 429 или 500+ - можно ретраить
-                if (response.status === 404) {
-                   throw new Error("Модель не найдена (404). Проверь URL или название модели.");
-                }
-                
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
-                }
-                return response;
-            } catch (err) {
-                if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, backoff));
-                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
-                }
-                throw err;
-            }
         }
 
         async function aiRespond(prompt) {
             const typing = document.getElementById('ai-typing');
             typing.style.display = 'block'; scroll();
-            
-            // Используем gemini-2.0-flash как более стабильную версию для превью
-            const modelName = "gemini-2.5-flash-preview-09-2025"; 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
             try {
-                const response = await fetchWithRetry(url, {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
-                        systemInstruction: { parts: [{ text: "Ты — Коре, дерзкий и саркастичный мопс. Ты считаешь себя самым умным в этой сети. Общайся коротко, на русском, используй собачьи метафоры и сленг (тяф, косточка, кожаный, погрызть)." }] }
+                        systemInstruction: { parts: [{ text: "Ты — Коре, саркастичный пес-интеллектуал. Отвечай коротко, по-собачьи, на русском. Используй метафоры про косточки и поводки." }] }
                     })
                 });
-
                 const result = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(result.error?.message || `Ошибка сервера (${response.status})`);
-                }
-
-                const aiText = result.candidates?.[0]?.content?.parts?.[0]?.text || "Тяф! Мои нейроны запутались в поводке. Повтори еще раз!";
-
-                typing.style.display = 'none';
-                render({ 
-                    uid: 'CORE', 
-                    name: '🐶 Коре', 
-                    ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=CoreMops', 
-                    val: aiText 
-                }, 'ai-msgs');
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Тяф! Мозги запутались в поводке.";
+                render({ uid: 'AI', name: 'Коре', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Core', val: text }, 'ai-msgs');
             } catch (e) {
-                console.error("AI Error:", e);
-                typing.style.display = 'none';
-                render({ 
-                    uid: 'CORE', 
-                    name: '🐶 Коре (ОШИБКА)', 
-                    ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Error', 
-                    val: `🦴 Тяф! Ошибка: ${e.message}. Возможно, выбранная модель недоступна. Попробуй позже.` 
-                }, 'ai-msgs');
-            }
+                render({ uid: 'AI', name: 'Коре', ava: 'https://api.dicebear.com/7.x/bottts/svg?seed=Err', val: "Тяф! Ошибка связи." }, 'ai-msgs');
+            } finally { typing.style.display = 'none'; }
         }
 
         document.getElementById('gen-btn').onclick = async () => {
             const p = document.getElementById('art-prompt').value.trim();
             if(!p) return;
-            const btn = document.getElementById('gen-btn');
             const loader = document.getElementById('art-loading');
             const resBox = document.getElementById('art-result-box');
-            const errDisplay = document.getElementById('error-display');
-            btn.disabled = true; loader.style.display = 'block'; resBox.style.display = 'none'; errDisplay.style.display = 'none';
-
+            loader.style.display = 'block'; resBox.style.display = 'none';
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-                const response = await fetchWithRetry(url, {
+                const response = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ instances: [{ prompt: p }], parameters: { sampleCount: 1 } })
                 });
-                
                 const result = await response.json();
-                
-                if (!response.ok) {
-                   throw new Error(result.error?.message || "Ошибка генерации (" + response.status + ")");
-                }
-                
-                if (result.predictions?.[0]?.bytesBase64Encoded) {
-                    currentGenImg = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
-                    document.getElementById('art-img').src = currentGenImg;
-                    resBox.style.display = 'block';
-                } else throw new Error("Попробуй другой запрос");
-            } catch (err) {
-                errDisplay.innerText = "⚠️ " + err.message;
-                errDisplay.style.display = 'block';
-            } finally { btn.disabled = false; loader.style.display = 'none'; }
+                currentGenImg = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                document.getElementById('art-img').src = currentGenImg;
+                resBox.style.display = 'block';
+            } catch (e) { alert("Ошибка генерации"); }
+            finally { loader.style.display = 'none'; }
         };
 
         document.getElementById('share-art-btn').onclick = () => {
-            if(currentGenImg) { send(currentGenImg); tab('chat'); document.getElementById('art-result-box').style.display = 'none'; document.getElementById('art-prompt').value = ''; }
+            if(currentGenImg) {
+                sb.from('messages').insert([{ uid: user.id, name: user.username, ava: user.avatar, val: currentGenImg }]);
+                tab('chat');
+            }
         };
 
         document.getElementById('chat-send').onclick = () => {
             const i = document.getElementById('chat-in');
-            if(i.value.trim()) { send(i.value.trim()); i.value = ''; }
-        };
-
-        window.handleMsgImg = (input) => {
-            const file = input.files[0];
-            if(!file) return;
-            const r = new FileReader();
-            r.onload = (e) => send(e.target.result);
-            r.readAsDataURL(file);
+            const val = i.value.trim();
+            if(!val) return;
+            i.value = '';
+            if(currentTab === 'ai') {
+                render({ uid: user.id, name: user.username, ava: user.avatar, val }, 'ai-msgs');
+                aiRespond(val);
+            } else {
+                sb.from('messages').insert([{ uid: user.id, name: user.username, ava: user.avatar, val }]);
+            }
         };
 
         window.tab = (t) => {
@@ -450,12 +359,11 @@
             const idx = {chat:0, ai:1, art:2, lab:3}[t];
             document.querySelectorAll('.nav-item')[idx].classList.add('active');
             document.getElementById('view-title').innerText = {chat:'ОБЩИЙ ЧАТ', ai:'ЛС С КОРЕ', art:'ФОТОСТУДИЯ', lab:'ПРОФИЛЬ'}[t];
-            document.getElementById('input-bar').style.display = (t === 'chat' || t === 'ai' ? 'flex' : 'none');
-            document.getElementById('plus-btn').style.display = (t === 'chat' ? 'flex' : 'none');
-            if(t === 'chat' || t === 'ai') scroll();
+            document.getElementById('input-bar').style.display = (t === 'art' || t === 'lab' ? 'none' : 'flex');
+            scroll();
         };
 
-        function scroll() { const m = document.getElementById('scroller'); m.scrollTo({ top: m.scrollHeight, behavior: 'smooth' }); }
+        function scroll() { const m = document.getElementById('scroller'); m.scrollTop = m.scrollHeight; }
         document.getElementById('chat-in').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('chat-send').click(); };
     </script>
 </body>
