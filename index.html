@@ -136,7 +136,6 @@
                     <span id="nick-counter" class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-600 font-bold">0/10</span>
                 </div>
                 <input id="pass-input" type="password" placeholder="ПИН-КОД" class="w-full bg-[#1F1F1F] border border-transparent focus:border-[var(--primary)] text-white rounded-xl p-4 outline-none text-center font-bold tracking-[0.5em] transition-all">
-                <input id="admin-key-input" type="password" placeholder="ADMIN KEY" class="w-full bg-[#1F1F1F] border border-red-500/30 focus:border-red-500 text-white rounded-xl p-4 outline-none text-center font-bold hidden transition-all">
             </div>
 
             <button id="auth-btn" onclick="handleLogin()" class="w-full bg-[var(--primary)] text-black font-black p-4 rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg">
@@ -251,7 +250,6 @@
         let lastMessageTime = 0;
         let unreadCounts = {}; 
         const SPAM_DELAY = 3000;
-        const ADMIN_SECRET = "dabbackwood671488";
 
         const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
@@ -262,10 +260,6 @@
         nickInput.addEventListener('input', (e) => {
             const val = e.target.value;
             nickCounter.innerText = `${val.length}/10`;
-            const field = document.getElementById('admin-key-input');
-            // Показываем поле ключа только если ник "admin"
-            if (val.toLowerCase() === 'admin') field.classList.remove('hidden');
-            else field.classList.add('hidden');
         });
 
         function toggleSidebar(open) {
@@ -315,7 +309,6 @@
         async function handleLogin() {
             const nick = nickInput.value.trim().toLowerCase();
             const pin = document.getElementById('pass-input').value.trim();
-            const adminKey = document.getElementById('admin-key-input').value.trim();
             const errEl = document.getElementById('auth-error');
             const authBtn = document.getElementById('auth-btn');
             const dHash = getDeviceHash();
@@ -323,13 +316,6 @@
 
             if (!nick || !pin) {
                 errEl.innerText = "УКАЖИТЕ НИК И ПИН";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            // ОШИБКА БЫЛА ЗДЕСЬ: Теперь проверяем adminKey только если isAdmin === true
-            if (isAdmin && adminKey !== ADMIN_SECRET) {
-                errEl.innerText = "ОШИБКА ADMIN KEY";
                 errEl.classList.remove('hidden');
                 return;
             }
