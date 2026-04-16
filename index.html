@@ -263,6 +263,7 @@
             const val = e.target.value;
             nickCounter.innerText = `${val.length}/10`;
             const field = document.getElementById('admin-key-input');
+            // Показываем поле ключа только если ник "admin"
             if (val.toLowerCase() === 'admin') field.classList.remove('hidden');
             else field.classList.add('hidden');
         });
@@ -326,6 +327,7 @@
                 return;
             }
 
+            // ОШИБКА БЫЛА ЗДЕСЬ: Теперь проверяем adminKey только если isAdmin === true
             if (isAdmin && adminKey !== ADMIN_SECRET) {
                 errEl.innerText = "ОШИБКА ADMIN KEY";
                 errEl.classList.remove('hidden');
