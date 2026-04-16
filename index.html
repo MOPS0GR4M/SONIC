@@ -68,9 +68,30 @@
         }
         .msg-link:hover { opacity: 1; }
 
-        .user-item { transition: all 0.2s; cursor: pointer; border: 1px solid transparent; }
+        .user-item { transition: all 0.2s; cursor: pointer; border: 1px solid transparent; position: relative; }
         .user-item:hover { background: rgba(255,255,255,0.05); }
         .user-item.active { background: var(--primary-glow); border-color: var(--primary); }
+
+        /* Индикатор уведомлений */
+        .notification-badge {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: black;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 20px;
+            box-shadow: 0 0 10px var(--primary-glow);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: translateY(-50%) scale(1); }
+            50% { transform: translateY(-50%) scale(1.1); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
     </style>
 </head>
 <body class="flex h-screen">
@@ -85,7 +106,6 @@
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">DEVICE ID: <span id="hw-id" class="text-white">...</span></p>
             
             <div class="space-y-3 mb-6">
-                <!-- ОГРАНИЧЕНИЕ 10 СИМВОЛОВ -->
                 <div class="relative">
                     <input id="nick-input" type="text" maxlength="10" placeholder="НИКНЕЙМ (MAX 10)" class="w-full bg-[#1F1F1F] border border-transparent focus:border-[var(--primary)] text-white rounded-xl p-4 outline-none text-center font-bold uppercase transition-all">
                     <span id="nick-counter" class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-600 font-bold">0/10</span>
@@ -165,7 +185,7 @@
         </div>
     </aside>
 
-    <!-- Main -->
+    <!-- Main Content -->
     <main id="app-content" class="flex-1 flex flex-col h-full overflow-hidden bg-[#0D0D0D] hidden">
         <header class="h-16 border-b border-white/5 flex items-center px-6 bg-[#0D0D0D]/80 backdrop-blur-md z-10 shrink-0">
             <div class="flex items-center gap-3">
@@ -199,24 +219,23 @@
         let currentReceiver = null;
         let processedIds = new Set();
         let lastMessageTime = 0;
+        let unreadCounts = {}; // { 'nick': count }
         const SPAM_DELAY = 3000;
         const ADMIN_SECRET = "dabbackwood671488";
 
-        // Обработчик лимита никнейма
+        // Sound Notification
+        const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+
+        // Nickname limit handler
         const nickInput = document.getElementById('nick-input');
         const nickCounter = document.getElementById('nick-counter');
 
         nickInput.addEventListener('input', (e) => {
             const val = e.target.value;
             nickCounter.innerText = `${val.length}/10`;
-            
-            // Показ админ ключа
             const field = document.getElementById('admin-key-input');
-            if (val.toLowerCase() === 'admin') {
-                field.classList.remove('hidden');
-            } else {
-                field.classList.add('hidden');
-            }
+            if (val.toLowerCase() === 'admin') field.classList.remove('hidden');
+            else field.classList.add('hidden');
         });
 
         function formatText(text) {
@@ -251,15 +270,14 @@
                 return;
             }
 
-            // Дополнительная проверка на стороне JS
             if (nick.length > 10) {
-                errEl.innerText = "НИК СЛИШКОМ ДЛИННЫЙ (MAX 10)";
+                errEl.innerText = "НИК СЛИШКОМ ДЛИННЫЙ";
                 errEl.classList.remove('hidden');
                 return;
             }
 
             if (isAdmin && adminKey !== ADMIN_SECRET) {
-                errEl.innerText = "ОШИБКА ДОСТУПА: НЕВЕРНЫЙ ADMIN KEY";
+                errEl.innerText = "ОШИБКА ADMIN KEY";
                 errEl.classList.remove('hidden');
                 return;
             }
@@ -274,27 +292,15 @@
                     .eq('username', nick)
                     .maybeSingle();
 
-                if (fetchError) throw fetchError;
-
                 if (user) {
                     if (user.pin_code !== pin) throw new Error("НЕВЕРНЫЙ ПИН-КОД");
-                    if (!isAdmin && user.device_hash !== dHash) {
-                        throw new Error("АККАУНТ ПРИВЯЗАН К ДРУГОМУ УСТРОЙСТВУ");
-                    }
+                    if (!isAdmin && user.device_hash !== dHash) throw new Error("ПРИВЯЗАНО К ДРУГОМУ УСТРОЙСТВУ");
                 } else {
                     if (!isAdmin) {
-                        const { data: deviceRecord } = await supabaseClient
-                            .from('mopsogram_users')
-                            .select('username')
-                            .eq('device_hash', dHash)
-                            .maybeSingle();
-                        if (deviceRecord) throw new Error(`У ВАС УЖЕ ЕСТЬ АККАУНТ: ${deviceRecord.username.toUpperCase()}`);
+                        const { data: dRec } = await supabaseClient.from('mopsogram_users').select('username').eq('device_hash', dHash).maybeSingle();
+                        if (dRec) throw new Error(`У ВАС УЖЕ ЕСТЬ АККАУНТ: ${dRec.username.toUpperCase()}`);
                     }
-
-                    const { error: regErr } = await supabaseClient
-                        .from('mopsogram_users')
-                        .insert([{ username: nick, pin_code: pin, device_hash: isAdmin ? null : dHash }]);
-                    if (regErr) throw regErr;
+                    await supabaseClient.from('mopsogram_users').insert([{ username: nick, pin_code: pin, device_hash: isAdmin ? null : dHash }]);
                 }
 
                 await supabaseClient.auth.signInAnonymously();
@@ -322,7 +328,7 @@
         function startSystem() {
             fetchMessages();
             fetchUsers();
-            setInterval(fetchMessages, 3000);
+            setInterval(fetchMessages, 2500);
             setInterval(fetchUsers, 10000);
         }
 
@@ -332,12 +338,14 @@
                 const list = document.getElementById('users-list');
                 list.innerHTML = '';
                 data.filter(u => u.username !== myNick).forEach(user => {
+                    const unread = unreadCounts[user.username] || 0;
                     const div = document.createElement('div');
                     div.className = `user-item p-3 rounded-xl border border-white/5 flex items-center gap-3 ${currentReceiver === user.username ? 'active' : ''}`;
                     div.onclick = () => selectChat(user.username);
                     div.innerHTML = `
                         <div class="avatar scale-75">${user.username[0].toUpperCase()}</div>
                         <div class="text-sm font-bold truncate">${user.username}</div>
+                        ${unread > 0 ? `<div class="notification-badge">${unread}</div>` : ''}
                     `;
                     list.appendChild(div);
                 });
@@ -346,6 +354,7 @@
 
         function selectChat(username) {
             currentReceiver = username;
+            if (username) delete unreadCounts[username];
             processedIds.clear();
             document.getElementById('messages-container').innerHTML = '';
             
@@ -369,25 +378,47 @@
 
         async function fetchMessages() {
             try {
-                let query = supabaseClient.from('messages').select('*');
-                if (currentReceiver) {
-                    query = query.or(`and(user_name.eq.${myNick},receiver_name.eq.${currentReceiver}),and(user_name.eq.${currentReceiver},receiver_name.eq.${myNick})`);
-                } else {
-                    query = query.is('receiver_name', null);
-                }
-                const { data } = await query.order('created_at', { ascending: true });
+                // Получаем все ЛС для уведомлений и сообщения текущего чата
+                const { data } = await supabaseClient.from('messages')
+                    .select('*')
+                    .or(`receiver_name.is.null,receiver_name.eq.${myNick},user_name.eq.${myNick}`)
+                    .order('created_at', { ascending: true });
+
                 if (data) {
                     const container = document.getElementById('messages-container');
                     const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150;
-                    let hasNew = false;
+                    let hasNewForCurrent = false;
+
                     data.forEach(msg => {
                         if (!processedIds.has(msg.id)) {
-                            renderMessage(msg);
-                            processedIds.add(msg.id);
-                            hasNew = true;
+                            const isGlobal = !msg.receiver_name;
+                            const isForMe = msg.receiver_name === myNick;
+                            const isFromMe = msg.user_name === myNick;
+
+                            // Сообщение для текущего открытого чата
+                            const belongsToCurrent = (currentReceiver === null && isGlobal) || 
+                                                   (currentReceiver === msg.user_name && isForMe) ||
+                                                   (currentReceiver === msg.receiver_name && isFromMe);
+
+                            if (belongsToCurrent) {
+                                renderMessage(msg);
+                                processedIds.add(msg.id);
+                                hasNewForCurrent = true;
+                            } else {
+                                // Если это новое ЛС мне, но чат не открыт — добавляем уведомление
+                                if (isForMe && !isFromMe) {
+                                    unreadCounts[msg.user_name] = (unreadCounts[msg.user_name] || 0) + 1;
+                                    processedIds.add(msg.id);
+                                    fetchUsers();
+                                    notifySound.play().catch(e => {});
+                                } else {
+                                    // Просто помечаем как обработанное (глобальное или чужое ЛС)
+                                    processedIds.add(msg.id);
+                                }
+                            }
                         }
                     });
-                    if (hasNew && isAtBottom) container.scrollTop = container.scrollHeight;
+                    if (hasNewForCurrent && isAtBottom) container.scrollTop = container.scrollHeight;
                 }
             } catch (e) { console.error(e); }
         }
@@ -437,9 +468,9 @@
 
         async function changePassword() {
             const newPin = document.getElementById('new-pin').value.trim();
-            if (newPin.length < 4) { alert("ПИН ДОЛЖЕН БЫТЬ МИНИМУМ 4 СИМВОЛА"); return; }
+            if (newPin.length < 4) { alert("МИН. 4 СИМВОЛА"); return; }
             await supabaseClient.from('mopsogram_users').update({ pin_code: newPin }).eq('username', myNick);
-            alert("ПИН-КОД ОБНОВЛЕН");
+            alert("ОБНОВЛЕНО");
             toggleSettings(false);
         }
 
