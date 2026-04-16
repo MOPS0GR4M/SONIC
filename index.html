@@ -37,7 +37,7 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 15px;
             scroll-behavior: smooth;
         }
 
@@ -72,7 +72,6 @@
         .user-item:hover { background: rgba(255,255,255,0.05); }
         .user-item.active { background: var(--primary-glow); border-color: var(--primary); }
 
-        /* Индикатор уведомлений */
         .notification-badge {
             position: absolute;
             right: 12px;
@@ -92,17 +91,43 @@
             50% { transform: translateY(-50%) scale(1.1); }
             100% { transform: translateY(-50%) scale(1); }
         }
+
+        /* Mobile Sidebar Logic */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                bottom: 0;
+                z-index: 50;
+                transition: left 0.3s ease;
+                width: 80%;
+                max-width: 300px;
+            }
+            #sidebar.open { left: 0; }
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                backdrop-filter: blur(4px);
+                z-index: 40;
+            }
+            .sidebar-overlay.open { display: block; }
+        }
     </style>
 </head>
 <body class="flex h-screen">
 
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+
     <!-- Auth Screen -->
     <div id="auth-screen" class="fixed inset-0 z-[100] bg-[#0A0A0A] flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-[#141414] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl text-center">
-            <div class="w-20 h-20 mopso-gradient rounded-2xl mx-auto flex items-center justify-center mb-6">
-                <i data-lucide="shield-check" class="w-10 h-10 text-white"></i>
+        <div class="w-full max-w-md bg-[#141414] border border-white/5 rounded-[2.5rem] p-6 md:p-8 shadow-2xl text-center">
+            <div class="w-16 h-16 md:w-20 md:h-20 mopso-gradient rounded-2xl mx-auto flex items-center justify-center mb-6">
+                <i data-lucide="shield-check" class="w-8 h-8 md:w-10 md:h-10 text-white"></i>
             </div>
-            <h1 class="text-3xl font-black italic mb-2 tracking-tighter">MOPSOGRAM <span class="text-[var(--primary)]">RECODE</span></h1>
+            <h1 class="text-2xl md:text-3xl font-black italic mb-2 tracking-tighter">MOPSOGRAM <span class="text-[var(--primary)]">RECODE</span></h1>
             <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">DEVICE ID: <span id="hw-id" class="text-white">...</span></p>
             
             <div class="space-y-3 mb-6">
@@ -152,7 +177,7 @@
     </div>
 
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-72 bg-[var(--bg-side)] border-r border-white/5 flex flex-col hidden md:flex shrink-0">
+    <aside id="sidebar" class="bg-[var(--bg-side)] border-r border-white/5 flex flex-col hidden shrink-0">
         <div class="p-6 font-black italic text-lg tracking-tighter border-b border-white/5 flex justify-between items-center">
             <span>СЕТЬ</span>
             <button onclick="toggleSettings(true)" class="text-gray-600 hover:text-white transition-colors">
@@ -187,19 +212,23 @@
 
     <!-- Main Content -->
     <main id="app-content" class="flex-1 flex flex-col h-full overflow-hidden bg-[#0D0D0D] hidden">
-        <header class="h-16 border-b border-white/5 flex items-center px-6 bg-[#0D0D0D]/80 backdrop-blur-md z-10 shrink-0">
+        <header class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-[#0D0D0D]/80 backdrop-blur-md z-10 shrink-0">
             <div class="flex items-center gap-3">
+                <button id="mobile-menu-btn" onclick="toggleSidebar(true)" class="md:hidden text-gray-400 p-2"><i data-lucide="menu" class="w-6 h-6"></i></button>
                 <div id="chat-header-avatar" class="avatar scale-75">G</div>
                 <div>
-                    <h3 class="font-black italic text-sm tracking-tighter uppercase" id="display-node">GLOBAL_HUB</h3>
-                    <p id="chat-status" class="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest">E2E ENCRYPTED</p>
+                    <h3 class="font-black italic text-sm tracking-tighter uppercase leading-none" id="display-node">GLOBAL_HUB</h3>
+                    <p id="chat-status" class="text-[8px] text-[var(--primary)] font-bold uppercase tracking-widest mt-1">E2E ENCRYPTED</p>
                 </div>
+            </div>
+            <div class="md:hidden">
+                <button onclick="toggleSettings(true)" class="text-gray-600 p-2"><i data-lucide="settings" class="w-5 h-5"></i></button>
             </div>
         </header>
 
         <div id="messages-container" class="scrollbar-hide"></div>
 
-        <div class="p-4 bg-[#0A0A0A] border-t border-white/5 shrink-0">
+        <div class="p-3 md:p-4 bg-[#0A0A0A] border-t border-white/5 shrink-0">
             <form id="message-form" class="max-w-4xl mx-auto flex items-center gap-2 bg-[#161616] p-1.5 rounded-2xl border border-white/5 shadow-2xl">
                 <input id="message-input" type="text" placeholder="Введите сообщение..." class="flex-1 bg-transparent border-none outline-none px-4 text-sm text-white py-2" autocomplete="off">
                 <button id="send-btn" type="submit" class="bg-[var(--primary)] text-black p-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all">
@@ -211,6 +240,7 @@
     </main>
 
     <script>
+        // Supabase Initialization
         const supabaseUrl = 'https://obqwgeusngfpboklrwob.supabase.co';
         const supabaseKey = 'sb_publishable_y5BsczI_vrBaouWNyS-kFg_vQ1FEUhE';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
@@ -219,14 +249,13 @@
         let currentReceiver = null;
         let processedIds = new Set();
         let lastMessageTime = 0;
-        let unreadCounts = {}; // { 'nick': count }
+        let unreadCounts = {}; 
         const SPAM_DELAY = 3000;
         const ADMIN_SECRET = "dabbackwood671488";
 
-        // Sound Notification
         const notifySound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
 
-        // Nickname limit handler
+        // Nickname handling
         const nickInput = document.getElementById('nick-input');
         const nickCounter = document.getElementById('nick-counter');
 
@@ -236,6 +265,33 @@
             const field = document.getElementById('admin-key-input');
             if (val.toLowerCase() === 'admin') field.classList.remove('hidden');
             else field.classList.add('hidden');
+        });
+
+        function toggleSidebar(open) {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (open) {
+                sb.classList.add('open');
+                sb.classList.remove('hidden');
+                overlay.classList.add('open');
+            } else {
+                sb.classList.remove('open');
+                overlay.classList.remove('open');
+                if (window.innerWidth < 768) {
+                    setTimeout(() => sb.classList.add('hidden'), 300);
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            const sb = document.getElementById('sidebar');
+            if (window.innerWidth >= 768) {
+                sb.classList.remove('hidden');
+                sb.classList.remove('open');
+                document.getElementById('sidebar-overlay').classList.remove('open');
+            } else if (!sb.classList.contains('open')) {
+                sb.classList.add('hidden');
+            }
         });
 
         function formatText(text) {
@@ -270,12 +326,6 @@
                 return;
             }
 
-            if (nick.length > 10) {
-                errEl.innerText = "НИК СЛИШКОМ ДЛИННЫЙ";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
             if (isAdmin && adminKey !== ADMIN_SECRET) {
                 errEl.innerText = "ОШИБКА ADMIN KEY";
                 errEl.classList.remove('hidden');
@@ -286,7 +336,7 @@
             authBtn.classList.add('btn-disabled');
 
             try {
-                let { data: user, error: fetchError } = await supabaseClient
+                let { data: user } = await supabaseClient
                     .from('mopsogram_users')
                     .select('*')
                     .eq('username', nick)
@@ -310,7 +360,9 @@
                 setTimeout(() => {
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('app-content').classList.remove('hidden');
-                    document.getElementById('sidebar').classList.remove('hidden');
+                    if (window.innerWidth >= 768) {
+                        document.getElementById('sidebar').classList.remove('hidden');
+                    }
                 }, 300);
 
                 document.getElementById('my-name').innerText = myNick;
@@ -341,7 +393,7 @@
                     const unread = unreadCounts[user.username] || 0;
                     const div = document.createElement('div');
                     div.className = `user-item p-3 rounded-xl border border-white/5 flex items-center gap-3 ${currentReceiver === user.username ? 'active' : ''}`;
-                    div.onclick = () => selectChat(user.username);
+                    div.onclick = () => { selectChat(user.username); toggleSidebar(false); };
                     div.innerHTML = `
                         <div class="avatar scale-75">${user.username[0].toUpperCase()}</div>
                         <div class="text-sm font-bold truncate">${user.username}</div>
@@ -364,12 +416,13 @@
 
             if (username) {
                 globalBtn.classList.remove('active');
-                nodeTitle.innerText = `PRIVATE: ${username}`;
+                nodeTitle.innerText = `${username}`;
                 headerAvatar.innerText = username[0].toUpperCase();
             } else {
                 globalBtn.classList.add('active');
                 nodeTitle.innerText = "GLOBAL_HUB";
                 headerAvatar.innerText = "G";
+                toggleSidebar(false);
             }
 
             fetchMessages();
@@ -378,7 +431,6 @@
 
         async function fetchMessages() {
             try {
-                // Получаем все ЛС для уведомлений и сообщения текущего чата
                 const { data } = await supabaseClient.from('messages')
                     .select('*')
                     .or(`receiver_name.is.null,receiver_name.eq.${myNick},user_name.eq.${myNick}`)
@@ -395,7 +447,6 @@
                             const isForMe = msg.receiver_name === myNick;
                             const isFromMe = msg.user_name === myNick;
 
-                            // Сообщение для текущего открытого чата
                             const belongsToCurrent = (currentReceiver === null && isGlobal) || 
                                                    (currentReceiver === msg.user_name && isForMe) ||
                                                    (currentReceiver === msg.receiver_name && isFromMe);
@@ -405,14 +456,12 @@
                                 processedIds.add(msg.id);
                                 hasNewForCurrent = true;
                             } else {
-                                // Если это новое ЛС мне, но чат не открыт — добавляем уведомление
                                 if (isForMe && !isFromMe) {
                                     unreadCounts[msg.user_name] = (unreadCounts[msg.user_name] || 0) + 1;
                                     processedIds.add(msg.id);
                                     fetchUsers();
                                     notifySound.play().catch(e => {});
                                 } else {
-                                    // Просто помечаем как обработанное (глобальное или чужое ЛС)
                                     processedIds.add(msg.id);
                                 }
                             }
@@ -450,10 +499,10 @@
             const isOwn = msg.user_name === myNick;
             const time = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
             const div = document.createElement('div');
-            div.className = `flex gap-3 mb-6 message-in ${isOwn ? 'flex-row-reverse' : 'flex-row'}`;
+            div.className = `flex gap-2 md:gap-3 mb-4 md:mb-6 message-in ${isOwn ? 'flex-row-reverse' : 'flex-row'}`;
             div.innerHTML = `
-                <div class="avatar shrink-0 scale-90">${msg.user_name[0].toUpperCase()}</div>
-                <div class="${isOwn ? 'items-end' : 'items-start'} flex flex-col max-w-[80%]">
+                <div class="avatar shrink-0 scale-75 md:scale-90">${msg.user_name[0].toUpperCase()}</div>
+                <div class="${isOwn ? 'items-end' : 'items-start'} flex flex-col max-w-[85%] md:max-w-[80%]">
                     <div class="flex items-center gap-2 mb-1 px-1">
                         <span class="text-[9px] font-black text-[var(--primary)] uppercase italic tracking-tighter">${msg.user_name}</span>
                         <span class="text-[8px] text-gray-600 font-bold">${time}</span>
